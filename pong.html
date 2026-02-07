@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ping Pong Game | masato</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="pong.css">
+</head>
+
+<body>
+    <div class="background-grain"></div>
+
+    <div class="game-container">
+        <header>
+            <a href="index.html" class="back-link">← Back to Portfolio</a>
+            <h1>Ping Pong</h1>
+        </header>
+
+        <div class="score-board">
+            <div class="player-score">Player: <span id="playerScore">0</span></div>
+            <div class="ai-score">AI: <span id="aiScore">0</span></div>
+        </div>
+
+        <canvas id="pongCanvas" width="800" height="500"></canvas>
+
+        <p class="instruction">Mouse to move paddle. First to 5 wins!</p>
+        <button id="restartBtn" class="btn">ゲームスタート</button>
+    </div>
+
+    <script src="pong.js"></script>
+</body>
+
+</html>

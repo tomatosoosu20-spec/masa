@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>サイバー・シューター | FPS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="shooter.css">
+</head>
+
+<body>
+    <div id="game-container"></div>
+
+    <!-- HUD Overlay -->
+    <div id="hud">
+        <div class="hud-top">
+            <div class="score-box">ELIMINATED: <span id="score">0</span></div>
+            <div class="life-box">SYSTEM INTEGRITY: <span id="health">100</span>%</div>
+        </div>
+
+        <div id="reticle"></div>
+
+        <div class="hud-bottom">
+            <div class="ammo-box">AMMO: <span id="ammo">--</span></div>
+            <div class="message-box" id="message">INITIALIZING...</div>
+        </div>
+    </div>
+
+    <!-- Shop Overlay -->
+    <div id="shop-overlay" class="overlay hidden">
+        <h1 class="glow-text">CYBER MARKET</h1>
+        <div class="shop-status">
+            CREDITS: <span id="shop-points">0</span> pt
+        </div>
+
+        <div class="shop-grid">
+            <div class="shop-card" id="card-rapid">
+                <div class="status-label" id="status-rapid">Lv.0</div>
+                <div class="card-icon">⚡</div>
+                <h3>RAPID FIRE</h3>
+                <p>射撃間隔を短縮し、連射性能を強化します。</p>
+                <div class="price" id="price-rapid">500 pt</div>
+                <button id="buyRapidBtn" class="buy-btn">INSTALL</button>
+            </div>
+
+            <div class="shop-card" id="card-repair">
+                <div class="status-label" id="status-repair">NORMAL</div>
+                <div class="card-icon">🛠️</div>
+                <h3>REPAIR</h3>
+                <p>機体ダメージを修復し、耐久力を全回復します。</p>
+                <div class="price">300 pt</div>
+                <button id="buyRepairBtn" class="buy-btn">RESTORE</button>
+            </div>
+
+            <div class="shop-card" id="card-cannon">
+                <div class="status-label" id="status-cannon">NOT OWNED</div>
+                <div class="card-icon">☄️</div>
+                <h3>CYBER CANNON</h3>
+                <p>高出力レーザーに換装。破壊力が大幅に向上します。</p>
+                <div class="price">1000 pt</div>
+                <button id="buyCannonBtn" class="buy-btn">UPGRADE</button>
+            </div>
+        </div>
+
+        <div class="shop-footer">
+            <button id="closeShopBtn" class="btn close-shop-btn">CLOSE SYSTEM</button>
+            <button id="homeBtn" class="btn home-btn">HOME</button>
+        </div>
+        <p class="instruction">PRESS [P] TO TOGGLE SHOP</p>
+    </div>
+
+    <!-- Start Overlay -->
+    <div id="overlay">
+        <h1 class="glow-text">CYBER SHOOTER</h1>
+        <p>侵入するウイルスを殲滅せよ。</p>
+        <button id="startBtn" class="btn">CONNECT TO SYSTEM</button>
+        <p class="instruction">WASD: MOVE | MOUSE: AIM | CLICK: SHOOT</p>
+    </div>
+
+    <!-- Three.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="shooter.js"></script>
+</body>
+
+</html>

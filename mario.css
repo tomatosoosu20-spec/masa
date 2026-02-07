@@ -1,0 +1,124 @@
+:root {
+    --bg-color: #5c94fc;
+    /* Mario Sky Blue */
+    --text-color: #ffffff;
+    --primary-color: #e60012;
+    /* Mario Red */
+    --secondary-color: #fbd000;
+    /* Coin Yellow */
+    --font-main: 'Outfit', sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-main);
+    background-color: #0d0d12;
+    /* Outer dark bg */
+    color: var(--text-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+.sky-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(#5c94fc, #85b4ff);
+    z-index: -1;
+}
+
+.game-container {
+    text-align: center;
+    position: relative;
+    z-index: 10;
+}
+
+header {
+    margin-bottom: 1rem;
+    position: relative;
+    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.2);
+}
+
+.back-link {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    transition: background 0.3s;
+}
+
+.back-link:hover {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+h1 {
+    font-size: 2.5rem;
+    color: white;
+    font-family: 'Arial Black', sans-serif;
+    /* Blocky font */
+    letter-spacing: -1px;
+}
+
+.score-board {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    font-weight: 700;
+    text-shadow: 1px 1px 0 #000;
+}
+
+canvas {
+    background: transparent;
+    /* Sky is behind */
+    /* border: 4px solid #fff; */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    max-width: 100%;
+    display: block;
+    margin: 0 auto;
+}
+
+.instruction {
+    margin-top: 1rem;
+    color: white;
+    font-size: 0.9rem;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+}
+
+.btn {
+    margin-top: 1rem;
+    padding: 0.8rem 2rem;
+    border: none;
+    border-radius: 50px;
+    background: var(--primary-color);
+    color: white;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 1rem;
+    box-shadow: 0 4px 0 #99000c;
+    transition: transform 0.1s;
+}
+
+.btn:active {
+    transform: translateY(4px);
+    box-shadow: none;
+}
+
+.hidden {
+    display: none;
+}

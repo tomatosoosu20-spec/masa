@@ -1,0 +1,259 @@
+:root {
+    --bg-color: #050510;
+    --neon-cyan: #00f3ff;
+    --neon-magenta: #ff00ff;
+    --neon-green: #00ff41;
+    --text-color: #fff;
+    --grid-color: rgba(0, 243, 255, 0.1);
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Outfit', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+.background-grid {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 200%;
+    height: 200%;
+    background-image:
+        linear-gradient(var(--grid-color) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+    background-size: 40px 40px;
+    z-index: -1;
+    transform: perspective(500px) rotateX(60deg) translateY(-100px) translateZ(-200px);
+    animation: gridMove 20s linear infinite;
+}
+
+@keyframes gridMove {
+    0% {
+        transform: perspective(500px) rotateX(60deg) translateY(0) translateZ(-200px);
+    }
+
+    100% {
+        transform: perspective(500px) rotateX(60deg) translateY(40px) translateZ(-200px);
+    }
+}
+
+.game-container {
+    text-align: center;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    pointer-events: none;
+    /* Let clicks pass through to canvas if needed */
+}
+
+/* UI Elements should handle pointer events */
+header,
+.hud,
+.instruction,
+.btn {
+    pointer-events: auto;
+    position: relative;
+    z-index: 20;
+}
+
+header {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    text-align: left;
+    margin: 0;
+}
+
+.back-link {
+    position: relative;
+    top: 0;
+    left: 0;
+}
+
+.hud {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+}
+
+.score-box {
+    color: var(--neon-cyan);
+    text-shadow: 0 0 5px var(--neon-cyan);
+}
+
+.lives-box {
+    color: #ff0044;
+    text-shadow: 0 0 10px #ff0044;
+    font-size: 1.4rem;
+}
+
+.level-box {
+    color: var(--neon-green);
+    text-shadow: 0 0 5px var(--neon-green);
+}
+
+canvas {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    border: none;
+    background: transparent;
+}
+
+.instruction {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    text-align: center;
+}
+
+#game-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+}
+
+.instruction {
+    margin-top: 15px;
+    color: #aaa;
+    font-size: 0.9rem;
+}
+
+.btn {
+    display: block;
+    margin: 20px auto;
+    padding: 12px 30px;
+    background: transparent;
+    border: 2px solid var(--neon-magenta);
+    color: var(--neon-magenta);
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-transform: uppercase;
+    box-shadow: 0 0 10px rgba(255, 0, 255, 0.3);
+}
+
+.btn:hover {
+    background: var(--neon-magenta);
+    color: #fff;
+    box-shadow: 0 0 20px var(--neon-magenta);
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Overlays */
+.overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(5, 5, 20, 0.9);
+    padding: 40px;
+    border: 2px solid var(--neon-cyan);
+    box-shadow: 0 0 30px rgba(0, 243, 255, 0.3);
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
+    z-index: 100;
+    width: 400px;
+    pointer-events: auto;
+}
+
+.glow-text.large {
+    font-size: 3.5rem;
+    margin-bottom: 20px;
+}
+
+.glow-text.fatal {
+    color: #ff0044;
+    text-shadow: 0 0 15px #ff0044;
+}
+
+.menu-btns {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.menu-btns .btn {
+    margin: 0;
+    width: 100%;
+    padding: 15px;
+}
+
+.menu-btns .btn span {
+    font-size: 0.8rem;
+    opacity: 0.7;
+    font-weight: 400;
+}
+
+.btn.fatal {
+    border-color: #ff0044;
+    color: #ff0044;
+}
+
+.btn.fatal:hover {
+    background: #ff0044;
+    color: #fff;
+}
+
+/* Mode Selector Styles */
+.mode-selector {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+    pointer-events: auto;
+}
+
+.mode-btn {
+    background: transparent;
+    border: 1px solid var(--neon-cyan);
+    color: var(--neon-cyan);
+    padding: 5px 15px;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+}
+
+.mode-btn.active {
+    background: var(--neon-cyan);
+    color: var(--bg-color);
+    box-shadow: 0 0 15px var(--neon-cyan);
+}
+
+.mode-btn:hover:not(.active) {
+    background: rgba(0, 243, 255, 0.2);
+    text-shadow: 0 0 5px var(--neon-cyan);
+}

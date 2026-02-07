@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>masato | Portfolio</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="background-grain"></div>
+    <div class="background-glow"></div>
+
+    <header>
+        <div class="container">
+            <nav class="glass-nav">
+                <a href="#" class="logo">masato</a>
+                <ul>
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#works">Works</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section id="hero" class="hero-section">
+            <div class="container">
+                <div class="hero-content fade-in">
+                    <span class="subtitle">Digital Creator</span>
+                    <h1>Game Park</h1>
+                    <p class="bio">
+                        デジタル領域で新しい体験を創造するクリエイター。<br>
+                        デザインとテクノロジーの融合を追求し、<br>
+                        直感的で美しいユーザーインターフェースを設計します。
+                    </p>
+                    <a href="#works" class="btn btn-primary">View My Work</a>
+                </div>
+            </div>
+        </section>
+
+        <section id="works" class="works-section">
+            <div class="container">
+                <h2 class="section-title fade-up">Selected Works</h2>
+                <div class="works-grid">
+                    <!-- Work 1 -->
+                    <article class="work-card fade-up">
+                        <div class="card-image">
+                            <img src="assets/work1.png" alt="Abstract Art Project">
+                            <div class="card-overlay">
+                                <a href="pong.html" class="btn btn-sm">Play Game</a>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <h3>ピンポンゲーム</h3>
+                            <p>ピンポン玉のゲーム相手を倒せ！</p>
+                        </div>
+                    </article>
+
+                    <!-- Work 2 (New Shooter Game) -->
+                    <article class="work-card fade-up delay-1">
+                        <div class="card-image">
+                            <img src="assets/work_shooter.png" alt="3D Shooter Game">
+                            <!-- Assuming a new image for shooter -->
+                            <div class="card-overlay">
+                                <a href="shooter.html" class="btn btn-sm">Play Game</a>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <h3>3D Shooter (FPS)</h3>
+                            <p>3D空間に侵入したウイルスを撃退するスタイリッシュFPS。Pointer Lockによる本格操作。</p>
+                        </div>
+                    </article>
+
+                    <!-- Work 3 (Original Work 2 - Mario) -->
+                    <article class="work-card fade-up delay-2">
+                        <div class="card-image">
+                            <img src="assets/work2.png" alt="Finance App UI">
+                            <div class="card-overlay">
+                                <a href="mario.html" class="btn btn-sm">Play Game</a>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <h3>スーパーマリオパクリ</h3>
+                            <p>ステージ5まであるゲーム、ボスキャラを倒せ。</p>
+                        </div>
+                    </article>
+
+                    <!-- Work 3 -->
+                    <article class="work-card fade-up delay-2">
+                        <div class="card-image">
+                            <img src="assets/work3.png" alt="3D Geometric Art">
+                            <div class="card-overlay">
+                                <a href="geometry.html" class="btn btn-sm">Play Game</a>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <h3>サイバー・ジオメトリーアスレチックゲーム</h3>
+                            <p>幾何学的な形状とサイバーパンクな質感を組み合わせた3Dレンダリング作品。</p>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section id="contact" class="contact-section">
+            <div class="container text-center">
+                <h2 class="section-title fade-up">Get In Touch</h2>
+                <p class="contact-text fade-up">お仕事のご依頼やご相談はこちらからお気軽にどうぞ。</p>
+                <a href="mailto:hello@example.com" class="btn btn-outline fade-up">Contact Me</a>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 masato. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

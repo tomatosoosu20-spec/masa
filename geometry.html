@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>サイバー・ジオメトリーアスレチック | masato</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="geometry.css">
+</head>
+
+<body>
+    <div class="background-grid"></div>
+    <div class="game-container">
+        <header>
+            <a href="index.html" class="back-link">← ポートフォリオに戻る</a>
+            <h1 class="glow-text">Cyber Geometry</h1>
+            <div class="mode-selector">
+                <button id="header1000mBtn" class="mode-btn hidden"
+                    style="color: #ff00de; border-color: #ff00de;">1000m</button>
+                <button id="normalModeBtn" class="mode-btn active">NORMAL</button>
+                <button id="easyModeBtn" class="mode-btn">EASY</button>
+            </div>
+        </header>
+
+        <div class="hud">
+            <div class="score-box">DISTANCE: <span id="dist">0</span>m</div>
+            <div class="lives-box">LIVES: <span id="lives">❤️❤️❤️</span></div>
+            <div class="level-box">LEVEL: <span id="level">1</span></div>
+        </div>
+
+        <div id="game-container"></div>
+
+        <!-- Start Screen Overlay -->
+        <div id="start-screen" class="overlay">
+            <h1 class="glow-text large">CYBER GEOMETRY</h1>
+            <p>Select your system mode:</p>
+            <div class="menu-btns">
+                <button id="start1000mBtn" class="btn hidden"
+                    style="background: linear-gradient(45deg, #ff00de, #00ffea); color: #fff; border: 2px solid #fff;">1000m
+                    CHALLENGE<br><span>(1 LIFE / PRO GEN)</span></button>
+                <button id="startNormalBtn" class="btn">NORMAL MODE<br><span>(3 LIVES)</span></button>
+                <button id="startEasyBtn" class="btn">EASY MODE<br><span>(777 LIVES)</span></button>
+            </div>
+        </div>
+
+        <!-- GameOver Screen Overlay -->
+        <div id="gameover-screen" class="overlay hidden">
+            <h1 class="glow-text fatal">SYSTEM FAILURE</h1>
+            <p>Retry with current or new mode?</p>
+            <div class="menu-btns">
+                <button id="retryNormalBtn" class="btn">REBOOT NORMAL</button>
+                <button id="retryEasyBtn" class="btn">REBOOT EASY</button>
+            </div>
+        </div>
+
+        <p class="instruction">Arrow Keys to Move. Space to Jump. WASD to Control View.</p>
+    </div>
+
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="geometry.js"></script>
+</body>
+
+</html>
