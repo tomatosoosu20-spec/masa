@@ -214,10 +214,8 @@ function startGame(mode) {
     if (activeSkin) applySkin(activeSkin);
 
     if (gameMode === '1000m') {
-        checkpointZ = 0; // Reset checkpoint for new 1000m run
         loadLevel(999); // Special index for 1000m mode
     } else {
-        checkpointZ = 0;
         loadLevel(0);
     }
 }
@@ -502,6 +500,10 @@ function generate1000mLevel() {
         if (isMoving) {
             block.move = { axis: Math.random() > 0.5 ? 'x' : 'y', range: 3, speed: 1 + Math.random() };
             block.color = 0x00ffea;
+        } else if (checkpointSpawned && cz < -505) {
+            // Cloud platforms after checkpoint
+            block.type = 'cloud';
+            block.color = 0xffffff;
         }
 
         data.blocks.push(block);
@@ -566,7 +568,7 @@ function loadLevel(idx) {
         const mat = new THREE.MeshStandardMaterial({ color: b.color, transparent: true, opacity: 0.8 });
         const mesh = new THREE.Mesh(geo, mat);
         mesh.position.set(b.x, b.y, b.z);
-        mesh.userData = { w: b.w, h: b.h, d: b.d, type: 'platform' };
+        mesh.userData = { w: b.w, h: b.h, d: b.d, type: b.type || 'platform' };
         if (b.move) {
             mesh.userData.move = b.move;
             mesh.userData.startX = b.x;
@@ -794,6 +796,13 @@ function update() {
                 player.position.y = p.position.y + p.userData.h / 2 + 0.5;
                 velocity.y = 0; onGround = true;
                 currentPlatform = p;
+
+                // Cloud platform descending logic
+                if (p.userData.type === 'cloud') {
+                    const fallSpeed = 0.05;
+                    p.position.y -= fallSpeed;
+                    player.position.y -= fallSpeed;
+                }
             }
         }
     }
