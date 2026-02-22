@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel Quest | masato</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="pixelquest.css">
+</head>
+
+<body>
+    <div class="game-wrapper">
+        <header class="game-header">
+            <div class="stats">
+                <div class="stat-item">XP: <span id="score">0</span></div>
+                <div class="stat-item">LIFE: <span id="lives">❤️❤️❤️</span></div>
+                <div class="stat-item">LVL: <span id="level">1</span></div>
+            </div>
+            <a href="index.html" class="back-link">EXIT</a>
+        </header>
+
+        <div id="game-container">
+            <canvas id="gameCanvas"></canvas>
+
+            <div id="start-screen" class="overlay">
+                <div class="overlay-content">
+                    <h1>PIXEL QUEST</h1>
+                    <p>Collect gems. Avoid slimes.</p>
+                    <button id="startBtn" class="pixel-btn">START GAME</button>
+                    <div class="controls-hint">
+                        ARROWS / WASD to Move
+                    </div>
+                </div>
+            </div>
+
+            <div id="gameover-screen" class="overlay hidden">
+                <div class="overlay-content">
+                    <h1 class="text-red">GAME OVER</h1>
+                    <p>Final Score: <span id="finalScore">0</span></p>
+                    <button id="retryBtn" class="pixel-btn">RETRY</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="pixelquest.js"></script>
+</body>
+
+</html>
