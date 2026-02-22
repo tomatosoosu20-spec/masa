@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel Dash | masato</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="pixeldash.css">
+</head>
+
+<body>
+    <div class="game-wrapper">
+        <header class="game-header">
+            <div class="stats">
+                <div class="stat-item">DIST: <span id="dist">0</span>m</div>
+                <div class="stat-item">SPEED: <span id="speedDisplay">1.0</span>x</div>
+                <div class="stat-item">BEST: <span id="highScore">0</span>m</div>
+            </div>
+            <a href="index.html" class="back-link">EXIT</a>
+        </header>
+
+        <div id="game-container">
+            <canvas id="gameCanvas"></canvas>
+
+            <div id="start-screen" class="overlay">
+                <div class="overlay-content">
+                    <h1>PIXEL DASH</h1>
+                    <p>Jump to survive. Don't hit the spikes.</p>
+                    <button id="startBtn" class="pixel-btn">DASH START</button>
+                    <div class="controls-hint">
+                        SPACE / UP / CLICK to Jump
+                    </div>
+                </div>
+            </div>
+
+            <div id="gameover-screen" class="overlay hidden">
+                <div class="overlay-content">
+                    <h1 class="text-red">CRASHED!</h1>
+                    <p>Distance: <span id="finalDist">0</span>m</p>
+                    <button id="retryBtn" class="pixel-btn">RELOAD</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="pixeldash.js"></script>
+</body>
+
+</html>
