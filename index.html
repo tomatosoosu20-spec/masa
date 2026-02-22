@@ -15,11 +15,12 @@
 <body>
     <div class="background-grain"></div>
     <div class="background-glow"></div>
-
+    <button id="resetAllDataBtn" class="reset-btn-fixed">RESET DATA</button>
     <header>
         <div class="container">
             <nav class="glass-nav">
-                <a href="#" class="logo">masato</a>
+                <a href="#" class="logo"><span id="m-secret-trigger"
+                        style="cursor: pointer; display: inline-block; padding: 0 5px;">m</span>asato</a>
                 <ul>
                     <li><a href="#about">About</a></li>
                     <li><a href="#works">Works</a></li>
@@ -37,9 +38,12 @@
                     <h1>Game Park</h1>
                     <p class="bio">
                         デジタル領域で新しい体験を創造するクリエイター。<br>
-                        デザインとテクノロジーの融合を追求し、<br>
-                        直感的で美しいユーザーインターフェースを設計します。
+                        ピンポンゲームでポイントを集めろ
                     </p>
+                    <div class="points-display fade-in delay-1">
+                        <span class="points-label">Pong Game Total Points:</span>
+                        <span id="totalPoints" class="points-value">0</span>
+                    </div>
                     <a href="#works" class="btn btn-primary">View My Work</a>
                 </div>
             </div>
@@ -52,7 +56,7 @@
                     <!-- Work 1 -->
                     <article class="work-card fade-up">
                         <div class="card-image">
-                            <img src="assets/work1.png" alt="Abstract Art Project">
+                            <img src="assets/pong_thumb.png" alt="Abstract Art Project">
                             <div class="card-overlay">
                                 <a href="pong.html" class="btn btn-sm">Play Game</a>
                             </div>
@@ -66,22 +70,26 @@
                     <!-- Work 2 (New Shooter Game) -->
                     <article class="work-card fade-up delay-1">
                         <div class="card-image">
-                            <img src="assets/work_shooter.png" alt="3D Shooter Game">
+                            <img src="assets/shooter_thumb.png" alt="3D Shooter Game">
                             <!-- Assuming a new image for shooter -->
                             <div class="card-overlay">
-                                <a href="shooter.html" class="btn btn-sm">Play Game</a>
+                                <a href="shooter.html" class="btn btn-sm buy-btn" data-game-id="shooter"
+                                    data-price="100">
+                                    <span class="price-tag">100 PT</span>
+                                    <span class="btn-text">Buy Game</span>
+                                </a>
                             </div>
                         </div>
                         <div class="card-content">
                             <h3>3D Shooter (FPS)</h3>
-                            <p>3D空間に侵入したウイルスを撃退するスタイリッシュFPS。Pointer Lockによる本格操作。</p>
+                            <p>3D空間に侵入したウイルスを撃退するスタイリッシュFPS。Pointer Lockによる本格操作。Pキーでショップに行ったりWDASキーで動いたりして、敵を倒せ</p>
                         </div>
                     </article>
 
                     <!-- Work 3 (Original Work 2 - Mario) -->
                     <article class="work-card fade-up delay-2">
                         <div class="card-image">
-                            <img src="assets/work2.png" alt="Finance App UI">
+                            <img src="assets/mario_thumb.png" alt="Finance App UI">
                             <div class="card-overlay">
                                 <a href="mario.html" class="btn btn-sm">Play Game</a>
                             </div>
@@ -95,14 +103,18 @@
                     <!-- Work 3 -->
                     <article class="work-card fade-up delay-2">
                         <div class="card-image">
-                            <img src="assets/work3.png" alt="3D Geometric Art">
+                            <img src="assets/geometry_thumb.png" alt="3D Geometric Art">
                             <div class="card-overlay">
-                                <a href="geometry.html" class="btn btn-sm">Play Game</a>
+                                <a href="geometry.html" class="btn btn-sm buy-btn" data-game-id="geometry"
+                                    data-price="100">
+                                    <span class="price-tag">100 PT</span>
+                                    <span class="btn-text">Buy Game</span>
+                                </a>
                             </div>
                         </div>
                         <div class="card-content">
                             <h3>サイバー・ジオメトリーアスレチックゲーム</h3>
-                            <p>幾何学的な形状とサイバーパンクな質感を組み合わせた3Dレンダリング作品。</p>
+                            <p>幾何学的な形状とサイバーパンクな質感を組み合わせた3Dレンダリング作品矢印キーで進んでWDASキーで画面を変えたり１キーで視点を変えたりして、12ステージまでクリアしろ</p>
                         </div>
                     </article>
                 </div>

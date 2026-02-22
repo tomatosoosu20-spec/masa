@@ -33,8 +33,10 @@ const player = {
     grounded: false,
     jumpCount: 0,
     comboTimer: null,
-    color: '#e60012' // Red mario
+    color: '#e60012', // Red mario
+    image: new Image()
 };
+player.image.src = 'assets/mario_player.png';
 
 // Levels Data
 const levels = [
@@ -168,8 +170,8 @@ const levels = [
             { x: 500, y: 50, width: 20, height: 20, collected: false },
             { x: 600, y: 50, width: 20, height: 20, collected: false },
         ],
-        enemies: Array.from({ length: 32 }, (_, i) => ({
-            x: Math.random() * 700 + 50, // Random X 50-750
+        enemies: Array.from({ length: 15 }, (_, i) => ({
+            x: 200 + Math.random() * 550, // Avoid spawning near player start (x=50)
             y: (i % 2 === 0) ? 400 : 100, // Floor or Top floor
             width: 32,
             height: 32,
@@ -201,11 +203,15 @@ const levels = [
             { x: 640, y: 150, width: 20, height: 20, collected: false }, // High coin
             { x: 750, y: 350, width: 20, height: 20, collected: false },
         ],
-        enemies: [
-            { x: 160, y: 320 - 32, width: 32, height: 32, dx: 1, color: '#8b4513', isDead: false },
-            { x: 460, y: 320 - 32, width: 32, height: 32, dx: 1, color: '#8b4513', isDead: false },
-            { x: 720, y: 400 - 32, width: 32, height: 32, dx: -2, color: '#8b4513', isDead: false },
-        ]
+        enemies: Array.from({ length: 140 }, () => ({
+            x: 200 + Math.random() * 550, // Avoid spawning near player (x=50)
+            y: 300 + Math.random() * 140, // Lower side
+            width: 32,
+            height: 32,
+            dx: (Math.random() - 0.5) * 4, // Random speed
+            color: '#8b4513',
+            isDead: false
+        }))
     }
 ];
 
@@ -588,19 +594,19 @@ function render() {
     });
 
     // Draw Player
-    ctx.fillStyle = player.color;
-    ctx.fillRect(player.x, player.y, player.width, player.height);
-
-    // Draw Eyes (to look like a face)
-    if (keys.right) {
-        ctx.fillStyle = '#fff';
-        ctx.fillRect(player.x + 20, player.y + 4, 8, 8);
-    } else if (keys.left) {
-        ctx.fillStyle = '#fff';
-        ctx.fillRect(player.x + 4, player.y + 4, 8, 8);
+    if (player.image.complete) {
+        ctx.save();
+        if (keys.left) {
+            // Flip image horizontally
+            ctx.scale(-1, 1);
+            ctx.drawImage(player.image, -player.x - player.width, player.y, player.width, player.height);
+        } else {
+            ctx.drawImage(player.image, player.x, player.y, player.width, player.height);
+        }
+        ctx.restore();
     } else {
-        ctx.fillStyle = '#fff';
-        ctx.fillRect(player.x + 12, player.y + 4, 8, 8);
+        ctx.fillStyle = player.color;
+        ctx.fillRect(player.x, player.y, player.width, player.height);
     }
 }
 

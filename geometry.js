@@ -35,9 +35,34 @@ scene.add(dirLight);
 const distEl = document.getElementById('dist');
 const livesEl = document.getElementById('lives');
 const levelEl = document.getElementById('level');
+const currentPointsEl = document.getElementById('currentPoints');
 
 const startScreen = document.getElementById('start-screen');
 const gameoverScreen = document.getElementById('gameover-screen');
+const shopScreen = document.getElementById('shop-screen');
+const shopItemsContainer = document.getElementById('shopItemsContainer');
+
+// Shop State
+let pongPoints = parseInt(localStorage.getItem('pong_total_points')) || 0;
+
+const skins = [
+    { id: 'red', name: 'RED SKIN', color: 0xff0000, price: 50 },
+    { id: 'yellow', name: 'YELLOW SKIN', color: 0xffff00, price: 50 },
+    { id: 'green', name: 'GREEN SKIN', color: 0x00ff00, price: 50 },
+    { id: 'blue', name: 'BLUE SKIN', color: 0x0000ff, price: 0 }, // FREE
+    { id: 'brown', name: 'BROWN SKIN', color: 0x8b4513, price: 50 },
+    { id: 'pink', name: 'PINK SKIN', color: 0xffc0cb, price: 50 },
+    { id: 'purple', name: 'PURPLE SKIN', color: 0x800080, price: 50 },
+    { id: 'silver', name: 'SILVER SKIN', color: 0xc0c0c0, price: 500 },
+    { id: 'gold', name: 'GOLD SKIN', color: 0xffd700, price: 2000 },
+    { id: 'hero', name: 'HERO SKIN', price: 600, image: 'assets/mario_player.png' }
+];
+
+let skinClickCounts = {};
+skins.forEach(s => skinClickCounts[s.id] = 0);
+
+// UI Update for Points
+if (currentPointsEl) currentPointsEl.innerText = pongPoints;
 
 // Game State
 let level = 1;
@@ -54,22 +79,107 @@ const setupModeBtns = () => {
     if (localStorage.getItem('geometry_cleared') === 'true') {
         document.getElementById('start1000mBtn').classList.remove('hidden');
         document.getElementById('header1000mBtn').classList.remove('hidden');
+        document.getElementById('retry1000mBtn').classList.remove('hidden');
     }
 
-    // Start Screen
+    // Start/Retry/Header logic unchanged...
     document.getElementById('startNormalBtn').addEventListener('click', () => startGame('normal'));
     document.getElementById('startEasyBtn').addEventListener('click', () => startGame('easy'));
     document.getElementById('start1000mBtn').addEventListener('click', () => startGame('1000m'));
-
-    // Retry Screen
     document.getElementById('retryNormalBtn').addEventListener('click', () => startGame('normal'));
     document.getElementById('retryEasyBtn').addEventListener('click', () => startGame('easy'));
-
-    // Header Buttons
+    document.getElementById('retry1000mBtn').addEventListener('click', () => startGame('1000m'));
     document.getElementById('normalModeBtn').addEventListener('click', () => startGame('normal'));
     document.getElementById('easyModeBtn').addEventListener('click', () => startGame('easy'));
     document.getElementById('header1000mBtn').addEventListener('click', () => startGame('1000m'));
+
+    // Shop Buttons
+    document.getElementById('shopBtn').addEventListener('click', () => shopScreen.classList.remove('hidden'));
+    document.getElementById('closeShopBtn').addEventListener('click', () => shopScreen.classList.add('hidden'));
+
+    renderShop();
 };
+
+function renderShop() {
+    if (!shopItemsContainer) return;
+    shopItemsContainer.innerHTML = '';
+
+    skins.forEach(skin => {
+        const isBought = (skin.price === 0) || localStorage.getItem(`geometry_skin_${skin.id}_bought`) === 'true';
+        if (skin.price === 0 && !localStorage.getItem(`geometry_skin_${skin.id}_bought`)) {
+            localStorage.setItem(`geometry_skin_${skin.id}_bought`, 'true');
+        }
+
+        const item = document.createElement('div');
+        item.className = 'shop-item';
+        item.innerHTML = `
+            <div class="item-preview ${skin.id}"></div>
+            <h3>${skin.name}</h3>
+            <p class="price" id="price-${skin.id}">${skin.price} PT ${isBought ? '(OWNED)' : ''}</p>
+            <button class="btn btn-sm" id="btn-${skin.id}">${isBought ? 'EQUIP' : 'BUY'}</button>
+        `;
+
+        item.addEventListener('click', () => {
+            if (isBought || skin.id === 'gold') return; // Gold skin is excluded from secret discount
+            skinClickCounts[skin.id]++;
+            if (skinClickCounts[skin.id] >= 26) {
+                skin.price = 0;
+                document.getElementById(`price-${skin.id}`).innerText = "0 (FREE!)";
+                document.getElementById(`price-${skin.id}`).style.color = "#00ff41";
+            }
+        });
+
+        item.querySelector('button').addEventListener('click', (e) => {
+            e.stopPropagation();
+            const bought = localStorage.getItem(`geometry_skin_${skin.id}_bought`) === 'true';
+            if (bought) {
+                applySkin(skin.id);
+                alert(`${skin.name} equipped!`);
+                return;
+            }
+
+            if (pongPoints >= skin.price) {
+                pongPoints -= skin.price;
+                localStorage.setItem('pong_total_points', pongPoints);
+                localStorage.setItem(`geometry_skin_${skin.id}_bought`, 'true');
+                if (currentPointsEl) currentPointsEl.innerText = pongPoints;
+                renderShop();
+                applySkin(skin.id);
+                alert(`Purchased and equipped ${skin.name}!`);
+            } else {
+                alert('ポイントが出ません。ピンポンゲームでポイントを貯めてください。');
+            }
+        });
+
+        shopItemsContainer.appendChild(item);
+    });
+}
+
+function applySkin(type) {
+    const skin = skins.find(s => s.id === type);
+    if (skin) {
+        if (skin.image) {
+            const texture = new THREE.TextureLoader().load(skin.image);
+            player.material = new THREE.MeshStandardMaterial({
+                map: texture,
+                transparent: true,
+                emissive: 0xffffff,
+                emissiveIntensity: 0.2
+            });
+            // ジオメトリを平面に変更（見た目だけ）
+            player.geometry = new THREE.PlaneGeometry(playerParams.size, playerParams.size);
+            player.userData.is2D = true;
+        } else {
+            player.material = playerMat; // 元の共有マテリアルに戻す
+            player.material.color.setHex(skin.color);
+            player.material.emissive.setHex(skin.color);
+            player.material.emissiveIntensity = 0.8;
+            player.geometry = playerGeo; // 元のキューブに戻す
+            player.userData.is2D = false;
+        }
+        localStorage.setItem('geometry_active_skin', type);
+    }
+}
 
 function startGame(mode) {
     gameMode = mode;
@@ -82,14 +192,32 @@ function startGame(mode) {
     isLevelClear = false;
     startTime = Date.now();
 
+    // Reset Checkpoint state if first time or forced
+    if (mode === '1000m') {
+        const reached = localStorage.getItem('geometry_checkpoint_reached') === 'true';
+        checkpointZ = reached ? -500 : 0;
+    } else {
+        checkpointZ = 0;
+    }
+
     // UI Update
     startScreen.classList.add('hidden');
     gameoverScreen.classList.add('hidden');
+    shopScreen.classList.add('hidden');
+
+    // Reset Material if normal game (re-apply skin if owned)
     player.material.color.setHex(gameMode === '1000m' ? 0xff00de : 0x00f3ff);
+    player.material.emissive.setHex(gameMode === '1000m' ? 0xff00de : 0x00f3ff);
+    player.material.emissiveIntensity = 0.5;
+
+    const activeSkin = localStorage.getItem('geometry_active_skin');
+    if (activeSkin) applySkin(activeSkin);
 
     if (gameMode === '1000m') {
+        checkpointZ = 0; // Reset checkpoint for new 1000m run
         loadLevel(999); // Special index for 1000m mode
     } else {
+        checkpointZ = 0;
         loadLevel(0);
     }
 }
@@ -112,6 +240,27 @@ const player = new THREE.Mesh(playerGeo, playerMat);
 player.castShadow = true;
 scene.add(player);
 
+// Particle system for effects
+let particles = [];
+function createParticle(pos, color = 0xffffff) {
+    const geo = new THREE.BoxGeometry(0.1, 0.1, 0.1);
+    const mat = new THREE.MeshBasicMaterial({ color: color, transparent: true, opacity: 1 });
+    const p = new THREE.Mesh(geo, mat);
+    p.position.set(
+        pos.x + (Math.random() - 0.5) * 1.5,
+        pos.y + (Math.random() - 0.5) * 1.5,
+        pos.z + (Math.random() - 0.5) * 1.5
+    );
+    p.userData = {
+        vx: (Math.random() - 0.5) * 0.05,
+        vy: 0.05 + Math.random() * 0.05,
+        vz: (Math.random() - 0.5) * 0.05,
+        life: 1.0
+    };
+    scene.add(p);
+    particles.push(p);
+}
+
 // Physics State
 let velocity = new THREE.Vector3();
 let onGround = false;
@@ -123,6 +272,8 @@ let movingPlatforms = [];
 let currentPlatform = null;
 let goal = null;
 let warpGoalMesh = null;
+let deathFlag = null; // 500m地点の旗
+let checkpointZ = 0; // チェックポイント
 
 const levelData = [
     {
@@ -312,38 +463,51 @@ function generate1000mLevel() {
     };
 
     let cx = 0, cy = 0, cz = -8;
+    let checkpointSpawned = false;
+
     // Generate up to -1000m
     while (cz > -1000) {
         // Randomize next platform params
-        const gap = 2 + Math.random() * 3; // 2-5m jump
-        const width = 2 + Math.random() * 3;
-        const depth = 2 + Math.random() * 6;
-        const height = 1;
+        let gap = 2 + Math.random() * 3; // 2-5m jump
+        let width = 2 + Math.random() * 3;
+        let depth = 2 + Math.random() * 6;
+        let height = 1;
+        let color = Math.random() > 0.8 ? 0xffffff : 0xff00de;
+        let isMoving = Math.random() < 0.1;
 
-        cz -= (gap + depth / 2);
-
-        // Random X/Y variation
-        if (Math.random() > 0.3) cx += (Math.random() - 0.5) * 6; // +/- 3m
-        if (Math.random() > 0.4) cy += (Math.random() - 0.5) * 4; // +/- 2m
+        // Force a large platform at -500m
+        if (!checkpointSpawned && cz <= -480) {
+            gap = 5;
+            width = 15;
+            depth = 15;
+            color = 0x800080; // Dark purple for checkpoint
+            isMoving = false;
+            checkpointSpawned = true;
+            cx = 0; // Center the checkpoint platform
+            cz = -500; // Exact position
+        } else {
+            cz -= (gap + depth / 2);
+            // Random X/Y variation
+            if (Math.random() > 0.3) cx += (Math.random() - 0.5) * 6; // +/- 3m
+            if (Math.random() > 0.4) cy += (Math.random() - 0.5) * 4; // +/- 2m
+        }
 
         // Clamp Y to avoid too high/low
         if (cy > 10) cy = 10;
         if (cy < -5) cy = -5;
 
         // Add Platform
-        const color = Math.random() > 0.8 ? 0xffffff : 0xff00de;
         const block = { x: cx, y: cy, z: cz, w: width, h: height, d: depth, color: color };
 
-        // 10% chance to be a moving platform
-        if (Math.random() < 0.1) {
+        if (isMoving) {
             block.move = { axis: Math.random() > 0.5 ? 'x' : 'y', range: 3, speed: 1 + Math.random() };
             block.color = 0x00ffea;
         }
 
         data.blocks.push(block);
 
-        // 5% chance to add hazard on top
-        if (Math.random() < 0.05 && depth > 3) {
+        // 5% chance to add hazard on top (skip for checkpoint)
+        if (!checkpointSpawned && Math.random() < 0.05 && depth > 3) {
             data.hazards.push({ x: cx, y: cy + 0.75, z: cz, w: width, h: 0.5, d: 1 });
         }
 
@@ -379,13 +543,22 @@ function loadLevel(idx) {
     hazards.forEach(h => scene.remove(h));
     if (goal) scene.remove(goal);
     if (warpGoalMesh) scene.remove(warpGoalMesh);
+    if (deathFlag) scene.remove(deathFlag);
     platforms = [];
     hazards = [];
     movingPlatforms = [];
     warpGoalMesh = null;
+    deathFlag = null;
 
+    if (idx !== 999) checkpointZ = 0; // Reset checkpoint for normal levels
     const data = (idx === 999) ? generate1000mLevel() : levelData[idx];
-    player.position.set(data.start.x, data.start.y, data.start.z);
+
+    // Warp to checkpoint if reached
+    if (idx === 999 && checkpointZ === -500) {
+        player.position.set(0, 5, -500);
+    } else {
+        player.position.set(data.start.x, data.start.y, data.start.z);
+    }
     velocity.set(0, 0, 0);
 
     data.blocks.forEach(b => {
@@ -434,6 +607,50 @@ function loadLevel(idx) {
         warpGoalMesh.userData = { targetLevel: data.warpGoal.targetLevel };
         scene.add(warpGoalMesh);
     }
+
+    // 500m Flag (Death Flag)
+    // 1000mモード、またはゴールが500mより先にある場合に設置
+    const goalDist = Math.abs(data.goal.z);
+    if (goalDist >= 500 || idx === 999) {
+        const flagGroup = new THREE.Group();
+
+        // Pole
+        const poleGeo = new THREE.CylinderGeometry(0.1, 0.1, 8, 8);
+        const poleMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
+        const pole = new THREE.Mesh(poleGeo, poleMat);
+        pole.position.y = 4;
+        flagGroup.add(pole);
+
+        // Flag fabric
+        const isReached = localStorage.getItem('geometry_checkpoint_reached') === 'true';
+        const fabricGeo = new THREE.BoxGeometry(2, 1.5, 0.1);
+        const fabricMat = new THREE.MeshStandardMaterial({
+            color: isReached ? 0x00ff00 : 0xff0000,
+            emissive: isReached ? 0x00ff00 : 0xff0000,
+            emissiveIntensity: 0.5
+        });
+        const fabric = new THREE.Mesh(fabricGeo, fabricMat);
+        fabric.position.set(1, 7, 0);
+        fabric.userData = { type: 'flagFabric' };
+        flagGroup.add(fabric);
+
+        // Find a platform near -500 to place the flag on
+        const targetZ = -500;
+        const nearbyBlock = data.blocks.find(b => Math.abs(b.z - targetZ) < 5); // Tighten search
+        let flagX = 0, flagY = 0;
+
+        if (nearbyBlock) {
+            flagX = nearbyBlock.x;
+            flagY = nearbyBlock.y + nearbyBlock.h / 2;
+        } else {
+            flagX = 0; flagY = 5;
+        }
+
+        flagGroup.position.set(flagX, flagY, targetZ);
+        flagGroup.userData = { w: 2, h: 8, d: 2, type: 'hazard' }; // Use hazard type for logic
+        scene.add(flagGroup);
+        deathFlag = flagGroup;
+    }
 }
 
 function updateLivesUI() {
@@ -450,10 +667,14 @@ function takeDamage() {
         setTimeout(() => player.material.emissive.setHex(0x00f3ff), 500);
         const data = (level === '1000m') ? { start: { x: 0, y: 5, z: 0 } } : levelData[level - 1];
         if (level === '1000m') {
-            // Restart 1000m mode from scratch or just respawn at start? 
-            // Logic says restart level generation usually, but for now just respawn at start
-            // Actually effectively "Restart" should probably reload the level to re-gen
-            loadLevel(999);
+            // Checkpoint respawn for 1000m
+            if (checkpointZ < 0) {
+                // Respawn at checkpoint (slighly back from -500 if that was it)
+                player.position.set(0, 5, checkpointZ + 2); // Respawn slightly "before" checkpoint
+            } else {
+                loadLevel(999);
+            }
+            velocity.set(0, 0, 0);
             return;
         }
         player.position.set(data.start.x, data.start.y, data.start.z);
@@ -462,6 +683,7 @@ function takeDamage() {
 }
 
 let camYaw = 0, camPitch = 0.5;
+let isFirstPerson = false;
 const CAM_DIST = 8;
 const keys = { up: false, down: false, left: false, right: false, space: false, w: false, a: false, s: false, d: false };
 
@@ -475,6 +697,11 @@ window.addEventListener('keydown', (e) => {
     if (e.code === 'KeyA') keys.a = true;
     if (e.code === 'KeyS') keys.s = true;
     if (e.code === 'KeyD') keys.d = true;
+
+    if (e.code === 'Digit1') {
+        isFirstPerson = !isFirstPerson;
+        player.visible = !isFirstPerson;
+    }
 });
 window.addEventListener('keyup', (e) => {
     if (e.code === 'ArrowUp') keys.up = false;
@@ -505,12 +732,22 @@ function update() {
         return;
     }
 
-    if (keys.a) camYaw += 0.03;
-    if (keys.d) camYaw -= 0.03;
-    if (keys.w) camPitch = Math.min(camPitch + 0.03, 1.5);
-    if (keys.s) camPitch = Math.max(camPitch - 0.03, 0.1);
+    if (isFirstPerson) {
+        if (keys.a) camYaw -= 0.03;
+        if (keys.d) camYaw += 0.03;
+        if (keys.w) camPitch = Math.max(camPitch - 0.03, 0.1);
+        if (keys.s) camPitch = Math.min(camPitch + 0.03, 1.5);
+    } else {
+        if (keys.a) camYaw += 0.03;
+        if (keys.d) camYaw -= 0.03;
+        if (keys.w) camPitch = Math.min(camPitch + 0.03, 1.5);
+        if (keys.s) camPitch = Math.max(camPitch - 0.03, 0.1);
+    }
 
-    const moveSpeed = playerParams.speed;
+    let moveSpeed = playerParams.speed;
+    if (localStorage.getItem('geometry_active_skin') === 'gold') {
+        moveSpeed *= 2;
+    }
     let ix = 0, iz = 0;
     if (keys.up) iz -= 1; if (keys.down) iz += 1;
     if (keys.left) ix -= 1; if (keys.right) ix += 1;
@@ -523,6 +760,13 @@ function update() {
     if (keys.space && onGround) { velocity.y = playerParams.jumpForce; onGround = false; }
     velocity.y -= playerParams.gravity;
     player.position.y += velocity.y;
+
+    // Billboard effect for 2D skins
+    if (player.userData.is2D) {
+        player.quaternion.copy(camera.quaternion);
+    } else {
+        player.rotation.set(0, 0, 0); // Reset rotation for 3D boxes
+    }
 
     // Move platforms
     const time = Date.now() * 0.001;
@@ -555,6 +799,36 @@ function update() {
     }
 
     for (let h of hazards) if (checkCollision(h)) takeDamage();
+
+    // Death Flag Collision (Now Checkpoint Flag)
+    if (deathFlag) {
+        const pPos = player.position;
+        const fPos = deathFlag.position;
+        const dx = Math.abs(pPos.x - fPos.x);
+        const dy = pPos.y - fPos.y;
+        const dz = Math.abs(pPos.z - fPos.z);
+        if (dz < 1.5 && dx < 2 && dy > 0 && dy < 8) {
+            // Reached Checkpoint
+            if (checkpointZ === 0) {
+                checkpointZ = -500;
+                localStorage.setItem('geometry_checkpoint_reached', 'true');
+                // Change flag color to green
+                deathFlag.children.forEach(child => {
+                    if (child.userData.type === 'flagFabric') {
+                        child.material.color.setHex(0x00ff00);
+                        child.material.emissive.setHex(0x00ff00);
+                    }
+                });
+                player.material.emissive.setHex(0x00ff00);
+                setTimeout(() => {
+                    const activeSkin = localStorage.getItem('geometry_active_skin');
+                    if (activeSkin) applySkin(activeSkin);
+                    else player.material.emissive.setHex(gameMode === '1000m' ? 0xff00de : 0x00f3ff);
+                }, 1000);
+            }
+        }
+    }
+
     if (goal && player.position.distanceTo(goal.position) < 2) {
         if (gameMode === '1000m') {
             alert('1000m CHALLENGE CLEARED! AMAZING!');
@@ -564,13 +838,58 @@ function update() {
         }
     }
     if (warpGoalMesh && player.position.distanceTo(warpGoalMesh.position) < 2) loadLevel(warpGoalMesh.userData.targetLevel);
+
     if (player.position.y < -10) takeDamage();
 
-    camera.position.x = player.position.x + Math.sin(camYaw) * CAM_DIST;
-    camera.position.z = player.position.z + Math.cos(camYaw) * CAM_DIST;
-    camera.position.y = player.position.y + CAM_DIST * camPitch;
-    camera.lookAt(player.position);
+    if (isFirstPerson) {
+        camera.position.copy(player.position);
+        camera.position.y += 0.4; // Eye level
+        const target = new THREE.Vector3();
+        target.x = player.position.x - Math.sin(camYaw);
+        target.z = player.position.z - Math.cos(camYaw);
+        target.y = camera.position.y + (0.5 - camPitch) * 2; // Look up/down adjustment
+        camera.lookAt(target);
+    } else {
+        camera.position.x = player.position.x + Math.sin(camYaw) * CAM_DIST;
+        camera.position.z = player.position.z + Math.cos(camYaw) * CAM_DIST;
+        camera.position.y = player.position.y + CAM_DIST * camPitch;
+        camera.lookAt(player.position);
+    }
+
+    // Effect Particles
+    const activeSkin = localStorage.getItem('geometry_active_skin');
+    if (activeSkin === 'silver' && Math.random() < 0.3) {
+        createParticle(player.position, 0xffffff); // White sparkle for silver
+    } else if (activeSkin === 'gold' && Math.random() < 0.5) {
+        createParticle(player.position, 0xffcc00); // Golden sparkle for gold (more frequent)
+    }
+
+    for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.position.x += p.userData.vx;
+        p.position.y += p.userData.vy;
+        p.position.z += p.userData.vz;
+        p.userData.life -= 0.02;
+        p.material.opacity = p.userData.life;
+        if (p.userData.life <= 0) {
+            scene.remove(p);
+            particles.splice(i, 1);
+        }
+    }
+
     distEl.innerText = Math.abs(Math.floor(player.position.z));
+
+    // Checkpoint logic
+    if (level === '1000m' && player.position.z <= -500 && checkpointZ === 0) {
+        checkpointZ = -500;
+        player.material.emissive.setHex(0x00ff00); // Visual feedback
+        setTimeout(() => {
+            const activeSkin = localStorage.getItem('geometry_active_skin');
+            if (activeSkin) applySkin(activeSkin);
+            else player.material.emissive.setHex(gameMode === '1000m' ? 0xff00de : 0x00f3ff);
+        }, 1000);
+    }
+
     renderer.render(scene, camera);
     requestAnimationFrame(update);
 }
@@ -591,5 +910,7 @@ function gameClear() {
 }
 
 setupModeBtns();
+const activeSkin = localStorage.getItem('geometry_active_skin');
+if (activeSkin) applySkin(activeSkin);
 update();
 loadLevel(0); // Setup initial level view behind menu

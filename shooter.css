@@ -1,8 +1,8 @@
 :root {
     --bg-color: #050510;
-    --neon-cyan: #00f3ff;
+    --neon-cyan: #00ff41;
     --neon-magenta: #ff00ff;
-    --neon-green: #00ff41;
+    --neon-green: #00f3ff;
     --text-color: #fff;
 }
 
@@ -294,4 +294,34 @@ html {
     pointer-events: none;
     transform: translate(-50%, -45%) !important;
     /* Slight slide animation */
+}
+
+/* Quit Button in Shop Top Right */
+.quit-top-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 0, 68, 0.1);
+    border: 2px solid #ff0044;
+    color: #ff0044;
+    border-radius: 50%;
+    font-size: 24px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.3s;
+    z-index: 110;
+    pointer-events: auto;
+    text-shadow: 0 0 10px #ff0044;
+    box-shadow: 0 0 10px rgba(255, 0, 68, 0.2);
+}
+
+.quit-top-btn:hover {
+    background: #ff0044;
+    color: #fff;
+    box-shadow: 0 0 20px #ff0044;
 }

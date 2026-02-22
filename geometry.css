@@ -108,6 +108,116 @@ header {
     text-shadow: 0 0 5px var(--neon-green);
 }
 
+.points-box {
+    color: #ffd700;
+    text-shadow: 0 0 5px #ffd700;
+    font-size: 1.1rem;
+}
+
+.shop-items-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin: 20px 0;
+    max-height: 50vh;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+.shop-items-grid::-webkit-scrollbar {
+    width: 5px;
+}
+
+.shop-items-grid::-webkit-scrollbar-thumb {
+    background: var(--neon-cyan);
+    border-radius: 5px;
+}
+
+.shop-item {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 15px;
+    border: 1px solid var(--neon-cyan);
+    border-radius: 8px;
+    transition: all 0.3s;
+    cursor: pointer;
+    text-align: center;
+}
+
+.shop-item:hover {
+    background: rgba(0, 243, 255, 0.1);
+    transform: translateY(-3px);
+}
+
+.item-preview {
+    width: 40px;
+    height: 40px;
+    margin: 0 auto 10px;
+    border: 1px solid white;
+}
+
+/* Color Previews */
+.item-preview.red {
+    background: #ff0000;
+    box-shadow: 0 0 10px #ff0000;
+}
+
+.item-preview.yellow {
+    background: #ffff00;
+    box-shadow: 0 0 10px #ffff00;
+}
+
+.item-preview.green {
+    background: #00ff00;
+    box-shadow: 0 0 10px #00ff00;
+}
+
+.item-preview.blue {
+    background: #0000ff;
+    box-shadow: 0 0 10px #0000ff;
+}
+
+.item-preview.brown {
+    background: #8b4513;
+    box-shadow: 0 0 10px #8b4513;
+}
+
+.item-preview.pink {
+    background: #ffc0cb;
+    box-shadow: 0 0 10px #ffc0cb;
+}
+
+.item-preview.purple {
+    background: #800080;
+    box-shadow: 0 0 10px #800080;
+}
+
+.item-preview.hero {
+    background: url('assets/mario_player.png') center/contain no-repeat;
+    border: none;
+}
+
+.item-preview.silver {
+    background: linear-gradient(135deg, #e0e0e0, #a0a0a0);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
+}
+
+.item-preview.gold {
+    background: linear-gradient(135deg, #ffd700, #ff8c00);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+}
+
+.shop-item h3 {
+    font-size: 0.9rem;
+    margin: 5px 0;
+}
+
+.price {
+    font-weight: 700;
+    color: #00ffea;
+    margin: 5px 0;
+    font-size: 0.8rem;
+}
+
 canvas {
     display: block;
     position: fixed;

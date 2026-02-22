@@ -4,7 +4,7 @@
 
 // Scene Settings
 const scene = new THREE.Scene();
-const skyColor = 0x00f3ff;
+const skyColor = 0x052005;
 scene.background = new THREE.Color(skyColor);
 scene.fog = new THREE.FogExp2(skyColor, 0.02);
 
@@ -17,7 +17,7 @@ document.getElementById('game-container').appendChild(renderer.domElement);
 // Lights
 const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
 scene.add(ambientLight);
-const spotLight = new THREE.SpotLight(0x00f3ff, 4);
+const spotLight = new THREE.SpotLight(0x00ff41, 4);
 spotLight.position.set(0, 20, 0);
 scene.add(spotLight);
 const pointLight = new THREE.PointLight(0xffffff, 1, 100);
@@ -149,7 +149,7 @@ const shoot = () => {
 
     // Define weapon properties
     const isTriple = (weaponType === 'triple');
-    const color = isTriple ? 0xff00ff : 0x00f3ff;
+    const color = isTriple ? 0xff00ff : 0x00ff41;
     const size = isTriple ? 0.08 : 0.01;
 
     // Rotation offsets for triple shot (in radians)
@@ -293,6 +293,12 @@ document.getElementById('buyCannonBtn').addEventListener('click', (e) => {
 });
 
 document.getElementById('closeShopBtn').addEventListener('click', (e) => { e.stopPropagation(); toggleShop(true); });
+document.getElementById('exitGameBtn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (confirm("ミッションを中断してメニューに戻りますか？")) {
+        location.href = "index.html";
+    }
+});
 document.getElementById('homeBtn').addEventListener('click', (e) => {
     e.stopPropagation();
     if (confirm("ミッションを中断してメニューに戻りますか？")) {

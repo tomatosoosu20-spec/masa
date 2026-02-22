@@ -3,6 +3,7 @@ const ctx = canvas.getContext('2d');
 
 const playerScoreEl = document.getElementById('playerScore');
 const aiScoreEl = document.getElementById('aiScore');
+const totalPointsEl = document.getElementById('totalPoints');
 const restartBtn = document.getElementById('restartBtn');
 
 // Game objects
@@ -39,6 +40,31 @@ const ai = {
 
 const WINNING_SCORE = 5;
 let isGameOver = false;
+let totalPoints = parseInt(localStorage.getItem('pong_total_points')) || 0;
+
+// Update UI on load
+window.addEventListener('load', () => {
+    // Check for Secret Bonus with slight delay to avoid browser alert suppression
+    setTimeout(() => {
+        const secretClicks = parseInt(localStorage.getItem('pong_m_secret_clicks')) || 0;
+        if (secretClicks === 12) {
+            totalPoints += 1000;
+            localStorage.setItem('pong_total_points', totalPoints);
+            alert('PERFECT! 1000 Bonus Points Added!');
+        } else if (secretClicks >= 13) {
+            totalPoints += 1;
+            localStorage.setItem('pong_total_points', totalPoints);
+            alert('Oops, clicked too much! Only 1 Point Bonus...');
+        }
+
+        if (secretClicks > 0) {
+            localStorage.removeItem('pong_m_secret_clicks');
+            totalPointsEl.textContent = totalPoints;
+        }
+    }, 500);
+
+    totalPointsEl.textContent = totalPoints;
+});
 
 // Event listener for mouse movement
 canvas.addEventListener('mousemove', (e) => {
@@ -157,6 +183,9 @@ function update() {
         player.score++;
         playerScoreEl.textContent = player.score;
         if (player.score >= WINNING_SCORE) {
+            totalPoints += 100;
+            totalPointsEl.textContent = totalPoints;
+            localStorage.setItem('pong_total_points', totalPoints);
             endGame("YOU WIN!");
             return;
         }
