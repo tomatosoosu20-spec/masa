@@ -6,10 +6,17 @@ const lvlEl = document.getElementById('lvl');
 const xpBar = document.getElementById('xp-bar');
 const startScreen = document.getElementById('start-screen');
 const gameoverScreen = document.getElementById('gameover-screen');
+const levelupScreen = document.getElementById('levelup-screen');
+const upgradeChoicesContainer = document.getElementById('upgrade-choices');
 const finalTimeEl = document.getElementById('finalTime');
 const finalKillsEl = document.getElementById('finalKills');
 const startBtn = document.getElementById('startBtn');
 const retryBtn = document.getElementById('retryBtn');
+const pauseBtn = document.getElementById('pause-btn');
+const resumeBtn = document.getElementById('resume-btn');
+const pauseScreen = document.getElementById('pause-screen');
+const pauseTimeEl = document.getElementById('pause-time');
+const pauseInventoryEl = document.getElementById('pause-inventory');
 
 const WIDTH = 600;
 const HEIGHT = 600;
@@ -25,6 +32,12 @@ let level = 1;
 let xp = 0;
 let xpToNext = 100;
 let frameCount = 0;
+let isPaused = false;
+let magnetRange = 50;
+let bossSpawned = false;
+let finalBossSpawned = false;
+let isVictory = false;
+let bossProjectiles = [];
 
 // Player
 const player = {
@@ -36,7 +49,13 @@ const player = {
     hp: 100,
     maxHp: 100,
     atkCooldown: 40,
-    atkTimer: 0
+    atkTimer: 0,
+    atkDamage: 50,
+    moveSpeedMult: 1,
+    inventory: [],
+    lastDirX: 1,
+    lastDirY: 0,
+    robotBTimer: 0
 };
 
 // Arrays
@@ -44,6 +63,10 @@ let enemies = [];
 let bullets = [];
 let particles = [];
 let gems = [];
+let orbitals = []; // Knife orbit
+let circularBlasts = []; // Robot A blast
+let robotBProjectiles = []; // Robot B projectiles
+let damageNumbers = []; // Floating numbers
 
 function init() {
     isStarted = true;
@@ -59,14 +82,40 @@ function init() {
     bullets = [];
     particles = [];
     gems = [];
+    orbitals = [];
+    circularBlasts = [];
+    damageNumbers = [];
+    bossSpawned = false;
+    finalBossSpawned = false;
+    isVictory = false;
+    bossProjectiles = [];
+    robotBProjectiles = [];
+    player.inventory = [];
+
+    // Spawn 4 initial gems at random locations
+    for (let i = 0; i < 4; i++) {
+        gems.push({
+            x: Math.random() * WIDTH,
+            y: Math.random() * HEIGHT,
+            xp: 20
+        });
+    }
+    player.moveSpeedMult = 1;
+    player.atkDamage = 50;
+    magnetRange = 50;
 
     player.x = WIDTH / 2;
     player.y = HEIGHT / 2;
     player.hp = 100;
     player.atkCooldown = 40;
+    player.lastDirX = 1;
+    player.lastDirY = 0;
+    player.robotBTimer = 0;
 
     startScreen.classList.add('hidden');
     gameoverScreen.classList.add('hidden');
+    levelupScreen.classList.add('hidden');
+    isPaused = false;
 
     updateUI();
     requestAnimationFrame(loop);
@@ -74,8 +123,10 @@ function init() {
 
 function loop() {
     if (isGameOver) return;
-    update();
-    draw();
+    if (!isPaused) {
+        update();
+        draw();
+    }
     requestAnimationFrame(loop);
 }
 
@@ -97,12 +148,17 @@ function update() {
 
     if (mx !== 0 || my !== 0) {
         const angle = Math.atan2(my, mx);
-        player.x += Math.cos(angle) * player.speed;
-        player.y += Math.sin(angle) * player.speed;
+        const speed = player.speed * player.moveSpeedMult;
+        player.x += Math.cos(angle) * speed;
+        player.y += Math.sin(angle) * speed;
 
         // Bounds
         player.x = Math.max(0, Math.min(WIDTH, player.x));
         player.y = Math.max(0, Math.min(HEIGHT, player.y));
+
+        // Update last direction
+        player.lastDirX = mx;
+        player.lastDirY = my;
     }
 
     // Auto Attack
@@ -137,23 +193,141 @@ function update() {
         b.x += b.vx;
         b.y += b.vy;
         b.life--;
-        if (b.life <= 0 || b.x < 0 || b.x > WIDTH || b.y < 0 || b.y > HEIGHT) bullets.splice(i, 1);
+        if (b.life <= 0 || b.x < 0 || b.x > WIDTH || b.y < 0 || b.y > HEIGHT) {
+            bullets.splice(i, 1);
+            return;
+        }
     });
 
+    // Boss Projectiles
+    bossProjectiles.forEach((bp, i) => {
+        bp.x += bp.vx;
+        bp.y += bp.vy;
+        if (bp.x < 0 || bp.x > WIDTH || bp.y < 0 || bp.y > HEIGHT) {
+            bossProjectiles.splice(i, 1);
+            return;
+        }
+        if (Math.hypot(bp.x - player.x, bp.y - player.y) < player.size / 2 + 5) {
+            player.hp -= 5;
+            bossProjectiles.splice(i, 1);
+            if (player.hp <= 0) gameOver();
+        }
+    });
+
+    // Orbitals (Knife)
+    orbitals.forEach(o => {
+        o.angle += o.speed;
+        o.x = player.x + Math.cos(o.angle) * o.dist;
+        o.y = player.y + Math.sin(o.angle) * o.dist;
+
+        enemies.forEach((e, ei) => {
+            const dist = Math.hypot(e.x - o.x, e.y - o.y);
+            if (dist < e.radius + 5) {
+                const dmg = e.isBoss ? 50 : o.damage;
+                e.hp -= dmg;
+                createDamageNumber(e.x, e.y - 10, dmg);
+                createParticles(e.x, e.y, o.color, 2);
+            }
+        });
+    });
+
+    // Circular Blasts (Robot A)
+    circularBlasts.forEach((cb, i) => {
+        cb.radius += 5;
+        cb.life--;
+        enemies.forEach(e => {
+            const d = Math.hypot(e.x - player.x, e.y - player.y);
+            if (Math.abs(d - cb.radius) < e.radius + 5) {
+                e.hp -= cb.damage;
+                createDamageNumber(e.x, e.y - 10, cb.damage);
+                createParticles(e.x, e.y, '#fff', 1);
+            }
+        });
+        if (cb.life <= 0) circularBlasts.splice(i, 1);
+    });
+
+    // Robot B Projectiles
+    robotBProjectiles.forEach((rp, i) => {
+        rp.x += rp.vx;
+        rp.y += rp.vy;
+        rp.life--;
+        enemies.forEach(e => {
+            const d = Math.hypot(e.x - rp.x, e.y - rp.y);
+            if (d < e.radius + rp.size) {
+                e.hp -= rp.damage;
+                createDamageNumber(e.x, e.y - 10, rp.damage);
+                createParticles(e.x, e.y, '#00ffff', 5);
+            }
+        });
+        if (rp.life <= 0 || rp.x < -50 || rp.x > WIDTH + 50 || rp.y < -50 || rp.y > HEIGHT + 50) {
+            robotBProjectiles.splice(i, 1);
+        }
+    });
+
+    const isHordeActive = elapsed >= 210 && elapsed < 240;
+
+    // Item Timers
+    if (player.inventory.includes('robota') && frameCount % 120 === 0) {
+        circularBlasts.push({ radius: 0, life: 30, damage: 150 });
+    }
+
+    if (player.inventory.includes('robotb')) {
+        const count = player.inventory.filter(id => id === 'robotb').length;
+        // Base cooldown 120 frames, 30% faster per star
+        const rbCooldown = Math.max(20, 120 * Math.pow(0.7, count - 1));
+        player.robotBTimer--;
+        if (player.robotBTimer <= 0) {
+            const angle = Math.atan2(player.lastDirY, player.lastDirX);
+            robotBProjectiles.push({
+                x: player.x,
+                y: player.y,
+                vx: Math.cos(angle) * 5,
+                vy: Math.sin(angle) * 5,
+                size: 15,
+                damage: 100,
+                life: 300
+            });
+            player.robotBTimer = rbCooldown;
+        }
+    }
+
     // Enemies
-    if (frameCount % Math.max(10, 60 - level * 2) === 0) {
+    const isBossArena = elapsed >= 300 && finalBossSpawned;
+    const isDensitySpike = elapsed >= 240;
+    const spawnMultiplier = (isHordeActive || isDensitySpike) ? 2 : 1;
+    const spawnInterval = Math.max(5, Math.floor((60 - level * 2) / spawnMultiplier));
+    if (!isBossArena && frameCount % spawnInterval === 0) {
         spawnEnemy();
     }
 
+    // Final Boss Warning at 4:55 (295s)
+    if (elapsed === 295 && frameCount % 60 === 0) {
+        // Just for logic, drawing is handled in draw()
+    }
+    // Spawn Final Boss at 300s
+    if (elapsed >= 300 && !finalBossSpawned) {
+        enemies = enemies.filter(e => e.isBoss); // Clear minions
+        spawnFinalBoss();
+        finalBossSpawned = true;
+    }
+
     enemies.forEach((e, i) => {
-        const angle = Math.atan2(player.y - e.y, player.x - e.x);
-        e.x += Math.cos(angle) * e.speed;
-        e.y += Math.sin(angle) * e.speed;
+        if (e.isFinalBoss) {
+            updateFinalBossAI(e);
+        } else {
+            const speedMult = isHordeActive ? 1.5 : 1;
+            const angle = Math.atan2(player.y - e.y, player.x - e.x);
+            e.x += Math.cos(angle) * e.speed * speedMult;
+            e.y += Math.sin(angle) * e.speed * speedMult;
+        }
 
         // Collision with bullet
         bullets.forEach((b, bi) => {
-            if (Math.hypot(e.x - b.x, e.y - b.y) < 15) {
-                e.hp -= 50;
+            const dist = Math.hypot(e.x - b.x, e.y - b.y);
+            if (dist < e.radius + 5) {
+                const dmg = player.atkDamage;
+                e.hp -= dmg;
+                createDamageNumber(e.x, e.y - 10, dmg);
                 bullets.splice(bi, 1);
                 createParticles(e.x, e.y, e.color, 3);
             }
@@ -161,14 +335,37 @@ function update() {
 
         if (e.hp <= 0) {
             kills++;
-            gems.push({ x: e.x, y: e.y, xp: 20 });
+            // Boss drops Red Orb, others drop regular XP
+            if (e.isFinalBoss) {
+                victory();
+            } else if (e.isBoss) {
+                gems.push({ x: e.x, y: e.y, xp: xpToNext, isRedOrb: true });
+            } else {
+                gems.push({ x: e.x, y: e.y, xp: 20 });
+            }
+
+            // Cursed Piggy Bank effect
+            if (player.inventory.includes('cursed_piggy') && !e.isBoss) {
+                if (Math.random() < 0.5) {
+                    const rx = e.x, ry = e.y;
+                    const rRadius = e.radius, rSpeed = e.speed, rHp = e.hp_max || e.hp, rColor = e.color;
+                    setTimeout(() => {
+                        if (isStarted && !isPaused && !isGameOver) {
+                            enemies.push({
+                                x: rx, y: ry, radius: rRadius, speed: rSpeed, hp: rHp, color: rColor, isBoss: false
+                            });
+                        }
+                    }, 3000);
+                }
+            }
+
             enemies.splice(i, 1);
             updateUI();
         }
 
         // Collision with player
-        if (Math.hypot(e.x - player.x, e.y - player.y) < player.size) {
-            player.hp -= 0.5;
+        if (Math.hypot(e.x - player.x, e.y - player.y) < player.size / 2 + e.radius) {
+            player.hp -= e.isBoss ? 2 : 0.5;
             if (player.hp <= 0) gameOver();
         }
     });
@@ -176,13 +373,18 @@ function update() {
     // Gems
     gems.forEach((g, i) => {
         const d = Math.hypot(g.x - player.x, g.y - player.y);
-        if (d < 50) {
+        if (d < magnetRange) {
             const angle = Math.atan2(player.y - g.y, player.x - g.x);
-            g.x += Math.cos(angle) * 5;
-            g.y += Math.sin(angle) * 5;
+            g.x += Math.cos(angle) * 7;
+            g.y += Math.sin(angle) * 7;
         }
         if (d < 15) {
-            xp += g.xp;
+            if (g.isRedOrb) {
+                xp = xpToNext; // Instant level up
+            } else {
+                const xpGain = player.inventory.includes('cursed_piggy') ? g.xp * 2 : g.xp;
+                xp += xpGain;
+            }
             gems.splice(i, 1);
             checkLevelUp();
         }
@@ -195,9 +397,54 @@ function update() {
         p.life -= 0.02;
         if (p.life <= 0) particles.splice(i, 1);
     });
+
+    // Damage Numbers
+    damageNumbers.forEach((dn, i) => {
+        dn.y -= dn.vy;
+        dn.life -= 0.02;
+    });
+    damageNumbers = damageNumbers.filter(dn => dn.life > 0);
+}
+
+function createDamageNumber(x, y, dmg) {
+    damageNumbers.push({
+        x: x,
+        y: y,
+        dmg: Math.floor(dmg),
+        vy: 1,
+        life: 1.0
+    });
+}
+
+function spawnFinalBoss() {
+    enemies.push({
+        x: WIDTH / 2,
+        y: -100,
+        radius: 60,
+        isBoss: true,
+        isFinalBoss: true,
+        speed: 1.5,
+        hp: 50000,
+        maxHp: 50000,
+        color: '#ff0000',
+        state: 'move',
+        stateTimer: 120,
+        dashX: 0, dashY: 0
+    });
 }
 
 function spawnEnemy() {
+    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+
+    // Boss Spawn at 2:30 (150s)
+    if (elapsed >= 150 && !bossSpawned) {
+        spawnMidBoss();
+        bossSpawned = true;
+        return;
+    }
+
+    const isBlue = elapsed >= 60;
+
     let x, y;
     if (Math.random() > 0.5) {
         x = Math.random() > 0.5 ? -20 : WIDTH + 20;
@@ -210,22 +457,228 @@ function spawnEnemy() {
     enemies.push({
         x: x,
         y: y,
+        radius: 8,
+        isBoss: false,
         speed: 1 + Math.random() * 0.5 + (level * 0.1),
-        hp: 50 + (level * 10),
-        color: '#ff0033'
+        hp: (isBlue ? 500 : 300) + (level * 20),
+        color: isBlue ? '#0088ff' : '#ff0033'
     });
 }
+
+function spawnMidBoss() {
+    console.log("BOSS SPAWNING!");
+    enemies.push({
+        x: WIDTH / 2,
+        y: -50,
+        radius: 40,
+        isBoss: true,
+        speed: 0.6,
+        hp: 5555,
+        color: '#ff0000',
+        label: 'MID-BOSS'
+    });
+}
+
+const UPGRADES = [
+    {
+        id: 'knife',
+        name: 'ナイフ',
+        desc: '周囲を回転する刃。近くの敵にダメージ（500 DMG）を与える。',
+        type: 'weapon',
+        onSelect: () => {
+            player.inventory.push('knife');
+            // Count total knives
+            const count = player.inventory.filter(id => id === 'knife').length;
+            // Redistribute all knives
+            orbitals = [];
+            for (let i = 0; i < count; i++) {
+                const angle = (i / count) * Math.PI * 2;
+                orbitals.push({ angle: angle, dist: 60, speed: 0.05, damage: 500, color: '#fff' });
+            }
+        }
+    },
+    {
+        id: 'pistol',
+        name: '拳銃',
+        desc: '弾のダメージが50アップし、発射速度が30%向上する。',
+        type: 'stat',
+        onSelect: () => {
+            player.atkDamage += 50;
+            player.atkCooldown = Math.max(5, Math.floor(player.atkCooldown * 0.7));
+            player.inventory.push('pistol');
+        }
+    },
+    {
+        id: 'robota',
+        name: 'ロボットA',
+        desc: '円状のエネルギー衝撃波（150 DMG）を定期的に放出する。',
+        type: 'weapon',
+        onSelect: () => {
+            player.inventory.push('robota');
+        }
+    },
+    {
+        id: 'boots',
+        name: 'ブーツ',
+        desc: '移動速度が20%向上する。',
+        type: 'stat',
+        onSelect: () => {
+            player.moveSpeedMult += 0.2;
+            player.inventory.push('boots');
+        }
+    },
+    {
+        id: 'shield',
+        name: 'シールド',
+        desc: '最大HPが20加算され、HPが全回復する。',
+        type: 'stat',
+        onSelect: () => {
+            player.maxHp += 20;
+            player.hp = player.maxHp;
+            player.inventory.push('shield');
+        }
+    },
+    {
+        id: 'magnet',
+        name: '磁石',
+        desc: '経験値オーブの回収範囲が50%広がる。',
+        type: 'stat',
+        onSelect: () => {
+            magnetRange *= 1.5;
+            player.inventory.push('magnet');
+        }
+    },
+    {
+        id: 'vitamin',
+        name: 'ビタミン',
+        desc: 'HPが毎秒1回復するようになる。',
+        type: 'item',
+        onSelect: () => {
+            if (!player.inventory.includes('vitamin')) {
+                setInterval(() => {
+                    if (isStarted && !isPaused && !isGameOver) {
+                        player.hp = Math.min(player.hp + 1, player.maxHp);
+                    }
+                }, 1000);
+            }
+            player.inventory.push('vitamin');
+        }
+    },
+    {
+        id: 'clover',
+        name: 'クローバー',
+        desc: '経験値オーブから得られる経験値が50%増加する（内部効果）。',
+        type: 'item',
+        onSelect: () => {
+            player.inventory.push('clover');
+        }
+    },
+    {
+        id: 'robotb',
+        name: 'ロボットB',
+        desc: '向いている方向に大きな玉（100 DMG）を飛ばす。星の数分、発射速度が30%早くなる。',
+        type: 'weapon',
+        onSelect: () => {
+            player.inventory.push('robotb');
+        }
+    },
+    {
+        id: 'cursed_piggy',
+        name: '呪いの貯金箱',
+        desc: 'もらえる経験値が100%増加するが、50%の確率で倒した敵が3秒後に復活する。',
+        type: 'item',
+        onSelect: () => {
+            player.inventory.push('cursed_piggy');
+        }
+    }
+];
 
 function checkLevelUp() {
     if (xp >= xpToNext) {
         xp -= xpToNext;
         level++;
-        xpToNext = Math.floor(xpToNext * 1.2);
-        player.hp = Math.min(player.hp + 20, player.maxHp);
-        player.atkCooldown = Math.max(10, player.atkCooldown - 2);
-        updateUI();
+        xpToNext = Math.floor(xpToNext * 1.3);
+        showLevelUp();
     }
     xpBar.style.width = (xp / xpToNext * 100) + '%';
+}
+
+function showLevelUp() {
+    isPaused = true;
+    levelupScreen.classList.remove('hidden');
+    upgradeChoicesContainer.innerHTML = '';
+
+    // Filter out upgrades that have reached max level (initial + 4 stars = 5 total)
+    const availableUpgrades = UPGRADES.filter(upgrade => {
+        const count = player.inventory.filter(id => id === upgrade.id).length;
+        return count < 5;
+    });
+
+    if (availableUpgrades.length === 0) {
+        resumeGame();
+        return;
+    }
+
+    // Random 3 choices from available ones
+    const shuffled = [...availableUpgrades].sort(() => 0.5 - Math.random());
+    const selected = shuffled.slice(0, 3);
+
+    selected.forEach(upgrade => {
+        const count = player.inventory.filter(id => id === upgrade.id).length;
+        const stars = '⭐️'.repeat(count);
+
+        const card = document.createElement('div');
+        card.className = 'upgrade-card';
+        card.innerHTML = `
+            <h3>${upgrade.name}${stars}</h3>
+            <p>${upgrade.desc}</p>
+        `;
+        card.onclick = () => {
+            upgrade.onSelect();
+            resumeGame();
+        };
+        upgradeChoicesContainer.appendChild(card);
+    });
+}
+
+function resumeGame() {
+    isPaused = false;
+    levelupScreen.classList.add('hidden');
+    pauseScreen.classList.add('hidden');
+    updateUI();
+}
+
+function showPause() {
+    if (!isStarted || isGameOver || levelupScreen.classList.contains('hidden') === false) return;
+    isPaused = true;
+    pauseScreen.classList.remove('hidden');
+
+    // Update Stats
+    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+    const m = Math.floor(elapsed / 60).toString().padStart(2, '0');
+    const s = (elapsed % 60).toString().padStart(2, '0');
+    pauseTimeEl.innerText = `${m}:${s}`;
+
+    // Update Inventory
+    pauseInventoryEl.innerHTML = '';
+    const itemCounts = {};
+    player.inventory.forEach(id => {
+        itemCounts[id] = (itemCounts[id] || 0) + 1;
+    });
+
+    Object.keys(itemCounts).forEach(id => {
+        const upgrade = UPGRADES.find(u => u.id === id);
+        if (upgrade) {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'pause-item';
+            const stars = '⭐️'.repeat(itemCounts[id] - 1); // Level 1 is base, Level 2 is ⭐️
+            itemDiv.innerHTML = `
+                <span>${upgrade.name}</span>
+                <span class="pause-item-stars">${stars}</span>
+            `;
+            pauseInventoryEl.appendChild(itemDiv);
+        }
+    });
 }
 
 function draw() {
@@ -244,8 +697,15 @@ function draw() {
 
     // Gems
     gems.forEach(g => {
-        ctx.fillStyle = '#0088ff';
-        ctx.fillRect(g.x - 3, g.y - 3, 6, 6);
+        if (g.isRedOrb) {
+            ctx.fillStyle = '#ff0000';
+            ctx.shadowBlur = 15; ctx.shadowColor = '#ff0000';
+            ctx.fillRect(g.x - 6, g.y - 6, 12, 12);
+            ctx.shadowBlur = 0;
+        } else {
+            ctx.fillStyle = '#0088ff';
+            ctx.fillRect(g.x - 3, g.y - 3, 6, 6);
+        }
     });
 
     // Bullets
@@ -261,8 +721,23 @@ function draw() {
     enemies.forEach(e => {
         ctx.fillStyle = e.color;
         ctx.beginPath();
-        ctx.arc(e.x, e.y, 8, 0, Math.PI * 2);
+        ctx.arc(e.x, e.y, e.radius, 0, Math.PI * 2);
         ctx.fill();
+
+        if (e.isBoss) {
+            // Boss HP bar
+            const barW = e.isFinalBoss ? 160 : 80;
+            const max = e.isFinalBoss ? 50000 : 5555;
+            ctx.fillStyle = '#333';
+            ctx.fillRect(e.x - barW / 2, e.y - e.radius - 20, barW, 8);
+            ctx.fillStyle = '#ff0000';
+            ctx.fillRect(e.x - barW / 2, e.y - e.radius - 20, (e.hp / max) * barW, 8);
+
+            // Label
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 12px Arial';
+            ctx.fillText(e.isFinalBoss ? "FINAL BOSS" : "MID-BOSS", e.x, e.y - e.radius - 25);
+        }
     });
 
     // Player
@@ -281,6 +756,141 @@ function draw() {
         ctx.fillRect(p.x, p.y, 2, 2);
     });
     ctx.globalAlpha = 1.0;
+
+    // Orbitals
+    orbitals.forEach(o => {
+        ctx.fillStyle = o.color;
+        ctx.shadowBlur = 10; ctx.shadowColor = o.color;
+        ctx.beginPath();
+        ctx.arc(o.x, o.y, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    });
+
+    // Circular Blasts
+    circularBlasts.forEach(cb => {
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(player.x, player.y, cb.radius, 0, Math.PI * 2);
+        ctx.stroke();
+    });
+
+    // Robot B Projectiles
+    robotBProjectiles.forEach(rp => {
+        ctx.fillStyle = '#00ffff';
+        ctx.shadowBlur = 15; ctx.shadowColor = '#00ffff';
+        ctx.beginPath();
+        ctx.arc(rp.x, rp.y, rp.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    });
+
+    // Damage Numbers
+    ctx.font = 'bold 12px Arial';
+    ctx.textAlign = 'center';
+    damageNumbers.forEach(dn => {
+        ctx.fillStyle = `rgba(255, 255, 255, ${dn.life})`;
+        ctx.fillText(dn.dmg, dn.x, dn.y);
+    });
+
+    // Final Boss Warning at 4:55 (295s)
+    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+    if (elapsed >= 295 && elapsed < 300) {
+        ctx.fillStyle = '#ff0000';
+        ctx.font = 'bold 50px Arial';
+        ctx.textAlign = 'center';
+        ctx.shadowBlur = 30; ctx.shadowColor = '#ff0000';
+        ctx.fillText("ボス発生！！", WIDTH / 2, HEIGHT / 2);
+        ctx.shadowBlur = 0;
+    }
+
+    // Boss Projectiles
+    bossProjectiles.forEach(bp => {
+        ctx.fillStyle = '#ff00ff';
+        ctx.beginPath();
+        ctx.arc(bp.x, bp.y, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 10; ctx.shadowColor = '#ff00ff';
+        ctx.beginPath();
+        ctx.arc(bp.x, bp.y, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    });
+
+    if (isVictory) {
+        ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+        ctx.fillStyle = '#00ff41';
+        ctx.font = 'bold 60px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText("VICTORY!", WIDTH / 2, HEIGHT / 2 - 20);
+        ctx.font = '20px Arial';
+        ctx.fillText("Final Boss Defeated!", WIDTH / 2, HEIGHT / 2 + 30);
+    }
+}
+
+function updateFinalBossAI(e) {
+    e.stateTimer--;
+    if (e.stateTimer <= 0) {
+        // Pick new state
+        const rand = Math.random();
+        if (rand < 0.4) {
+            e.state = 'shoot';
+            e.stateTimer = 180; // 3 seconds shooting
+        } else if (rand < 0.8) {
+            e.state = 'telegraph_dash';
+            e.stateTimer = 60; // 1 second prep
+            e.color = '#ff6600';
+        } else {
+            e.state = 'move';
+            e.stateTimer = 120; // 2 seconds move
+            e.color = '#ff0000';
+        }
+    }
+
+    if (e.state === 'move') {
+        const angle = Math.atan2(player.y - e.y, player.x - e.x);
+        e.x += Math.cos(angle) * e.speed;
+        e.y += Math.sin(angle) * e.speed;
+    } else if (e.state === 'telegraph_dash') {
+        // Slow move or stay still
+        const angle = Math.atan2(player.y - e.y, player.x - e.x);
+        e.x += Math.cos(angle) * 0.5;
+        e.y += Math.sin(angle) * 0.5;
+        // At the end of telegraph, set dash target
+        if (e.stateTimer === 1) {
+            e.state = 'dash';
+            e.stateTimer = 40;
+            const dashAngle = Math.atan2(player.y - e.y, player.x - e.x);
+            e.dashX = Math.cos(dashAngle) * 8;
+            e.dashY = Math.sin(dashAngle) * 8;
+            e.color = '#ff00ff';
+        }
+    } else if (e.state === 'dash') {
+        e.x += e.dashX;
+        e.y += e.dashY;
+    } else if (e.state === 'shoot') {
+        if (e.stateTimer % 20 === 0) {
+            // Circle shot
+            for (let a = 0; a < Math.PI * 2; a += Math.PI / 4) {
+                bossProjectiles.push({
+                    x: e.x, y: e.y,
+                    vx: Math.cos(a) * 4,
+                    vy: Math.sin(a) * 4
+                });
+            }
+        }
+        // Small move
+        const angle = Math.atan2(player.y - e.y, player.x - e.x);
+        e.x += Math.cos(angle) * 0.5;
+        e.y += Math.sin(angle) * 0.5;
+    }
+}
+
+function victory() {
+    isVictory = true;
+    // Delay victory screen or just show text
 }
 
 function createParticles(x, y, color, count) {
@@ -313,6 +923,8 @@ window.addEventListener('keyup', e => keys[e.code] = false);
 
 startBtn.addEventListener('click', init);
 retryBtn.addEventListener('click', init);
+pauseBtn.addEventListener('click', showPause);
+resumeBtn.addEventListener('click', resumeGame);
 
 // Initial Bg
 draw();
