@@ -1,9 +1,3 @@
-const CPU_NAMES = ["STRIKER", "GHOST", "BLADE", "CRINGE", "ALPHA", "OMEGA", "NEON", "PRIME"];
-const COLORS = [
-    "#ff0055", "#0088ff", "#00ff88", "#ffaa00",
-    "#aa00ff", "#00ffff", "#ff00ff", "#ffffff"
-];
-
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
@@ -24,8 +18,7 @@ let isStarted = false;
 let isGameOver = false;
 let frameCount = 0;
 let players = [];
-let particles = [];
-let isPaused = true;
+const particles = [];
 
 const hudEl = document.getElementById('hud');
 const startScreen = document.getElementById('start-screen');
@@ -33,6 +26,14 @@ const gameoverScreen = document.getElementById('gameover-screen');
 const winnerText = document.getElementById('winner-text');
 const startBtn = document.getElementById('startBtn');
 const retryBtn = document.getElementById('retryBtn');
+
+const COLORS = [
+    "#ff0055", "#0088ff", "#00ff88", "#ffaa00",
+    "#aa00ff", "#00ffff", "#ff00ff", "#ffffff"
+];
+
+const CPU_NAMES = ["STRIKER", "GHOST", "BLADE", "CRINGE", "ALPHA", "OMEGA", "NEON", "PRIME"];
+
 const introOverlay = document.getElementById('intro-overlay');
 const introText = document.getElementById('intro-text');
 const canvasWrapper = document.querySelector('.canvas-wrapper');
@@ -74,12 +75,10 @@ class Player {
         if (Math.abs(this.dx) > 8 || Math.abs(this.dy) > 8) {
             this.trails.push({ x: this.x, y: this.y, life: 10 });
         }
-        
-        // Fix splice during iteration
-        for (let i = this.trails.length - 1; i >= 0; i--) {
-            this.trails[i].life--;
-            if (this.trails[i].life <= 0) this.trails.splice(i, 1);
-        }
+        this.trails.forEach((t, i) => {
+            t.life--;
+            if (t.life <= 0) this.trails.splice(i, 1);
+        });
 
         if (this.hitstun > 0) {
             this.hitstun--;
@@ -238,10 +237,8 @@ class Player {
     loseLife() {
         this.lives--;
         screenShakeTimer = 20;
-        if (canvasWrapper) {
-            canvasWrapper.classList.add('ko-flash');
-            setTimeout(() => canvasWrapper.classList.remove('ko-flash'), 500);
-        }
+        canvasWrapper.classList.add('ko-flash');
+        setTimeout(() => canvasWrapper.classList.remove('ko-flash'), 500);
 
         createExplosion(this.x, this.y, this.color);
         if (this.lives > 0) {
@@ -303,9 +300,10 @@ const stage = [
     { x: 340, y: 150, width: 120, height: 15 }  // Platform TOP
 ];
 
+let isPaused = true;
+
 function init() {
     players = [];
-    particles = [];
     hudEl.innerHTML = '';
     isPaused = true;
     
@@ -333,23 +331,8 @@ function init() {
     gameoverScreen.classList.add('hidden');
     
     startCountdown();
+    loop();
 }
-
-// Ensure loop only runs at 60fps and only once
-let animationId = null;
-function loop() {
-    if (isGameOver) {
-        cancelAnimationFrame(animationId);
-        return;
-    }
-    update();
-    draw();
-    frameCount++;
-    animationId = requestAnimationFrame(loop);
-}
-
-// Start loop if not already running
-if (!animationId) loop();
 
 function startCountdown() {
     introOverlay.classList.remove('hidden');
@@ -373,25 +356,29 @@ function startCountdown() {
     }, 100);
 }
 
+function loop() {
+    if (isGameOver) return;
+    update();
+    draw();
+    frameCount++;
+    requestAnimationFrame(loop);
+}
+
 function update() {
     players.forEach(p => p.update());
     updateHUD();
 
     if (screenShakeTimer > 0) {
         screenShakeTimer--;
-        if (canvasWrapper) canvasWrapper.classList.add('shake');
+        canvasWrapper.classList.add('shake');
     } else {
-        if (canvasWrapper) canvasWrapper.classList.remove('shake');
+        canvasWrapper.classList.remove('shake');
     }
 
-    // Fix splice during iteration
-    for (let i = particles.length - 1; i >= 0; i--) {
-        const p = particles[i];
-        p.x += p.dx;
-        p.y += p.dy;
-        p.life--;
+    particles.forEach((p, i) => {
+        p.x += p.dx; p.y += p.dy; p.life--;
         if (p.life <= 0) particles.splice(i, 1);
-    }
+    });
 }
 
 function updateHUD() {
@@ -401,38 +388,29 @@ function updateHUD() {
         const percentEl = el.querySelector('.percent');
         const livesEl = el.querySelector('.lives');
         
-        const currentPercentText = percentEl.textContent;
-        const oldPercent = parseInt(currentPercentText) || 0;
-        
+        const oldPercent = parseInt(percentEl.textContent);
         percentEl.textContent = `${p.percent}%`;
-        livesEl.textContent = "❤".repeat(Math.max(0, p.lives));
+        livesEl.textContent = "❤".repeat(p.lives);
         
         if (p.lives <= 0) {
             el.classList.add('eliminated');
             livesEl.textContent = "KO";
-            livesEl.style.color = "#555";
         }
 
         if (p.percent > oldPercent) {
-             percentEl.style.transition = "none";
-             percentEl.style.transform = "scale(1.4)";
-             setTimeout(() => {
-                 percentEl.style.transition = "transform 0.2s ease";
-                 percentEl.style.transform = "scale(1)";
-             }, 50);
+             percentEl.style.transform = "scale(1.3)";
+             setTimeout(() => percentEl.style.transform = "scale(1)", 100);
         }
 
         // Dynamic color
-        const intensity = Math.min(100, p.percent) / 100;
         const r = 255;
-        const g = 255 - (intensity * 255);
-        const b = 255 - (intensity * 255);
+        const g = Math.max(0, 255 - p.percent * 2);
+        const b = Math.max(0, 255 - p.percent * 3);
         percentEl.style.color = `rgb(${r}, ${g}, ${b})`;
     });
 }
 
 function draw() {
-    if (!ctx) return;
     ctx.fillStyle = "#0a0a14";
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
@@ -444,6 +422,7 @@ function draw() {
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
     // Stage
+    ctx.fillStyle = "#222";
     stage.forEach((p, i) => {
         ctx.fillStyle = i === 0 ? "#1a1a1a" : "#333";
         ctx.fillRect(p.x, p.y, p.width, p.height);
@@ -486,7 +465,7 @@ function createExplosion(x, y, color) {
 
 function checkGameOver() {
     const alive = players.filter(p => p.lives > 0);
-    if (alive.length === 1 && isStarted) {
+    if (alive.length === 1) {
         isGameOver = true;
         winnerText.textContent = `${alive[0].name} WINS!`;
         winnerText.style.color = alive[0].color;
@@ -494,10 +473,5 @@ function checkGameOver() {
     }
 }
 
-startBtn.addEventListener('click', () => {
-    init();
-});
-
-retryBtn.addEventListener('click', () => {
-    init();
-});
+startBtn.addEventListener('click', init);
+retryBtn.addEventListener('click', init);
