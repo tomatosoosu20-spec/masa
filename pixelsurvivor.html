@@ -26,6 +26,7 @@
             <div id="xp-bar-container">
                 <div id="xp-bar"></div>
             </div>
+            <button id="pause-btn">ストップ</button>
             <canvas id="gameCanvas"></canvas>
 
             <div id="start-screen" class="overlay">
@@ -45,6 +46,29 @@
                     <p>Survived: <span id="finalTime">00:00</span></p>
                     <p>Kills: <span id="finalKills">0</span></p>
                     <button id="retryBtn" class="pixel-btn">TRY AGAIN</button>
+                </div>
+            </div>
+
+            <div id="levelup-screen" class="overlay hidden">
+                <div class="levelup-content">
+                    <h1 class="text-blue">LEVEL UP!</h1>
+                    <p>Choose an Upgrade</p>
+                    <div id="upgrade-choices">
+                        <!-- Choices added via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <div id="pause-screen" class="overlay hidden">
+                <div class="overlay-content">
+                    <h1>PAUSED</h1>
+                    <div id="pause-stats">
+                        <p>Elapsed: <span id="pause-time">00:00</span></p>
+                        <div id="pause-inventory">
+                            <!-- Items appear here -->
+                        </div>
+                    </div>
+                    <button id="resume-btn" class="pixel-btn">RESUME</button>
                 </div>
             </div>
         </div>

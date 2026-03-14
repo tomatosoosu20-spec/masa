@@ -112,6 +112,9 @@ function init() {
     player.lastDirY = 0;
     player.robotBTimer = 0;
 
+    // Default starting item
+    player.inventory = ['pistol'];
+
     startScreen.classList.add('hidden');
     gameoverScreen.classList.add('hidden');
     levelupScreen.classList.add('hidden');
@@ -214,15 +217,18 @@ function update() {
         }
     });
 
-    // Orbitals (Knife)
+    // Orbitals (Knife & Katana)
     orbitals.forEach(o => {
-        o.angle += o.speed;
+        // Katana has 2x speed, Knife uses default speed
+        const currentSpeed = player.inventory.includes('katana') ? o.speed * 2 : o.speed;
+        o.angle += currentSpeed;
         o.x = player.x + Math.cos(o.angle) * o.dist;
         o.y = player.y + Math.sin(o.angle) * o.dist;
 
         enemies.forEach((e, ei) => {
+            const hitRadius = o.size ? o.size : 5;
             const dist = Math.hypot(e.x - o.x, e.y - o.y);
-            if (dist < e.radius + 5) {
+            if (dist < e.radius + hitRadius) {
                 const dmg = e.isBoss ? 50 : o.damage;
                 e.hp -= dmg;
                 createDamageNumber(e.x, e.y - 10, dmg);
@@ -231,7 +237,7 @@ function update() {
         });
     });
 
-    // Circular Blasts (Robot A)
+    // Circular Blasts (Robot A / Destruction Wave)
     circularBlasts.forEach((cb, i) => {
         cb.radius += 5;
         cb.life--;
@@ -240,7 +246,12 @@ function update() {
             if (Math.abs(d - cb.radius) < e.radius + 5) {
                 e.hp -= cb.damage;
                 createDamageNumber(e.x, e.y - 10, cb.damage);
-                createParticles(e.x, e.y, '#fff', 1);
+                createParticles(e.x, e.y, cb.color || '#fff', 1);
+
+                // Slow effect for Destruction Wave
+                if (cb.isDestructionWave) {
+                    e.slowTimer = 60; // 1 second slow
+                }
             }
         });
         if (cb.life <= 0) circularBlasts.splice(i, 1);
@@ -267,26 +278,53 @@ function update() {
     const isHordeActive = elapsed >= 210 && elapsed < 240;
 
     // Item Timers
-    if (player.inventory.includes('robota') && frameCount % 120 === 0) {
-        circularBlasts.push({ radius: 0, life: 30, damage: 150 });
+    if ((player.inventory.includes('robota') || player.inventory.includes('destruction_wave')) && frameCount % 120 === 0) {
+        let isWave = player.inventory.includes('destruction_wave');
+        let color = isWave ? '#ff00ff' : '#fff';
+        let dmg = isWave ? 200 : 150; // 150 + 50
+        circularBlasts.push({ radius: 0, life: 30, damage: dmg, color: color, isDestructionWave: isWave });
     }
 
-    if (player.inventory.includes('robotb')) {
-        const count = player.inventory.filter(id => id === 'robotb').length;
+    if (player.inventory.includes('robotb') || player.inventory.includes('destruction_wave')) {
+        let isWave = player.inventory.includes('destruction_wave');
+        let count = isWave ? 5 : player.inventory.filter(id => id === 'robotb').length; // Max stars effectively
+        let dmg = isWave ? 150 : 100; // 100 + 50
+
         // Base cooldown 120 frames, 30% faster per star
         const rbCooldown = Math.max(20, 120 * Math.pow(0.7, count - 1));
         player.robotBTimer--;
         if (player.robotBTimer <= 0) {
-            const angle = Math.atan2(player.lastDirY, player.lastDirX);
+            const baseAngle = Math.atan2(player.lastDirY, player.lastDirX);
+
+            // Forward shot
             robotBProjectiles.push({
                 x: player.x,
                 y: player.y,
-                vx: Math.cos(angle) * 5,
-                vy: Math.sin(angle) * 5,
+                vx: Math.cos(baseAngle) * 5,
+                vy: Math.sin(baseAngle) * 5,
                 size: 15,
-                damage: 100,
+                damage: dmg,
                 life: 300
             });
+
+            if (isWave) {
+                // Left shot
+                let angleLeft = baseAngle - Math.PI / 4;
+                robotBProjectiles.push({
+                    x: player.x, y: player.y,
+                    vx: Math.cos(angleLeft) * 5, vy: Math.sin(angleLeft) * 5,
+                    size: 15, damage: dmg, life: 300
+                });
+
+                // Right shot
+                let angleRight = baseAngle + Math.PI / 4;
+                robotBProjectiles.push({
+                    x: player.x, y: player.y,
+                    vx: Math.cos(angleRight) * 5, vy: Math.sin(angleRight) * 5,
+                    size: 15, damage: dmg, life: 300
+                });
+            }
+
             player.robotBTimer = rbCooldown;
         }
     }
@@ -315,7 +353,14 @@ function update() {
         if (e.isFinalBoss) {
             updateFinalBossAI(e);
         } else {
-            const speedMult = isHordeActive ? 1.5 : 1;
+            let speedMult = isHordeActive ? 1.5 : 1;
+
+            // Apply slow debuff if active
+            if (e.slowTimer > 0) {
+                speedMult *= 0.5;
+                e.slowTimer--;
+            }
+
             const angle = Math.atan2(player.y - e.y, player.x - e.x);
             e.x += Math.cos(angle) * e.speed * speedMult;
             e.y += Math.sin(angle) * e.speed * speedMult;
@@ -348,11 +393,11 @@ function update() {
             if (player.inventory.includes('cursed_piggy') && !e.isBoss) {
                 if (Math.random() < 0.5) {
                     const rx = e.x, ry = e.y;
-                    const rRadius = e.radius, rSpeed = e.speed, rHp = e.hp_max || e.hp, rColor = e.color;
+                    const rRadius = e.radius, rSpeed = e.speed, rHp = e.maxHp || e.hp, rColor = e.color;
                     setTimeout(() => {
                         if (isStarted && !isPaused && !isGameOver) {
                             enemies.push({
-                                x: rx, y: ry, radius: rRadius, speed: rSpeed, hp: rHp, color: rColor, isBoss: false
+                                x: rx, y: ry, radius: rRadius, speed: rSpeed, hp: rHp, maxHp: rHp, color: rColor, isBoss: false
                             });
                         }
                     }, 3000);
@@ -454,13 +499,15 @@ function spawnEnemy() {
         y = Math.random() > 0.5 ? -20 : HEIGHT + 20;
     }
 
+    const maxHp = (isBlue ? 500 : 300) + (level * 20);
     enemies.push({
         x: x,
         y: y,
         radius: 8,
         isBoss: false,
         speed: 1 + Math.random() * 0.5 + (level * 0.1),
-        hp: (isBlue ? 500 : 300) + (level * 20),
+        hp: maxHp,
+        maxHp: maxHp,
         color: isBlue ? '#0088ff' : '#ff0033'
     });
 }
@@ -474,6 +521,7 @@ function spawnMidBoss() {
         isBoss: true,
         speed: 0.6,
         hp: 5555,
+        maxHp: 5555,
         color: '#ff0000',
         label: 'MID-BOSS'
     });
@@ -590,6 +638,43 @@ const UPGRADES = [
         onSelect: () => {
             player.inventory.push('cursed_piggy');
         }
+    },
+    {
+        id: 'katana',
+        name: '日本刀',
+        desc: 'ナイフの進化系。サイズが50%アップし、回転スピードが2倍になる。',
+        type: 'weapon',
+        onSelect: () => {
+            // Remove all knives
+            player.inventory = player.inventory.filter(id => id !== 'knife');
+            player.inventory.push('katana');
+            // Distribute katana
+            orbitals = [{ angle: 0, dist: 90, speed: 0.1, damage: 1000, color: '#ff0000', size: 7.5 }];
+        }
+    },
+    {
+        id: 'destruction_wave',
+        name: '破壊の波動',
+        desc: 'ロボットAとロボットBの進化系。ダメージが+50され、波動で敵が遅くなり、ロボットBの弾が3発になる。',
+        type: 'weapon',
+        onSelect: () => {
+            // Remove robots base components to represent evolution (optional, but keep it clean)
+            player.inventory = player.inventory.filter(id => id !== 'robota' && id !== 'robotb');
+            player.inventory.push('destruction_wave');
+        }
+    }
+];
+
+const EVOLUTIONS = [
+    {
+        resultId: 'katana',
+        reqWeapon: 'knife',
+        reqItem: 'boots'
+    },
+    {
+        resultId: 'destruction_wave',
+        reqWeapon: 'robota',
+        reqItem: 'robotb'
     }
 ];
 
@@ -610,8 +695,30 @@ function showLevelUp() {
 
     // Filter out upgrades that have reached max level (initial + 4 stars = 5 total)
     const availableUpgrades = UPGRADES.filter(upgrade => {
+        // Prevent normal upgrades that are actually evolutions from appearing randomly
+        if (upgrade.id === 'katana' || upgrade.id === 'destruction_wave') return false;
+
         const count = player.inventory.filter(id => id === upgrade.id).length;
+        // The user asked for a maximum of 4 stars, meaning 5 items total (1 base + 4 upgrades)
         return count < 5;
+    });
+
+    // Check Evolutions
+    EVOLUTIONS.forEach(evo => {
+        const weaponCount = player.inventory.filter(id => id === evo.reqWeapon).length;
+        const itemCount = player.inventory.filter(id => id === evo.reqItem).length;
+        const hasReachedEvoAlready = player.inventory.includes(evo.resultId);
+
+        // Katana needs Knife Lv5 (5) and Boots Lv4 (4)
+        // Wave needs Robot A Lv5 (5) and Robot B Lv5 (5)
+        let canEvolve = false;
+        if (evo.resultId === 'katana' && weaponCount >= 5 && itemCount >= 4) canEvolve = true;
+        if (evo.resultId === 'destruction_wave' && weaponCount >= 5 && itemCount >= 5) canEvolve = true;
+
+        if (canEvolve && !hasReachedEvoAlready) {
+            const evoUpgrade = UPGRADES.find(u => u.id === evo.resultId);
+            if (evoUpgrade) availableUpgrades.push(evoUpgrade);
+        }
     });
 
     if (availableUpgrades.length === 0) {
@@ -625,12 +732,24 @@ function showLevelUp() {
 
     selected.forEach(upgrade => {
         const count = player.inventory.filter(id => id === upgrade.id).length;
-        const stars = '⭐️'.repeat(count);
+        // Don't show stars if it's the first time getting it, otherwise show up to 4 stars.
+        let stars = count > 0 ? '⭐️'.repeat(count) : '';
+        if (count === 4) {
+            stars += '（最大）';
+        }
+
+        // Determine label based on type
+        let typeLabel = '';
+        if (upgrade.type === 'weapon') {
+            typeLabel = '【武器】 ';
+        } else if (upgrade.type === 'item' || upgrade.type === 'stat') {
+            typeLabel = '【アイテム】 ';
+        }
 
         const card = document.createElement('div');
         card.className = 'upgrade-card';
         card.innerHTML = `
-            <h3>${upgrade.name}${stars}</h3>
+            <h3>${typeLabel}${upgrade.name}${stars}</h3>
             <p>${upgrade.desc}</p>
         `;
         card.onclick = () => {

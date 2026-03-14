@@ -383,16 +383,15 @@ const levelData = [
     {
         start: { x: 0, y: 5, z: 0 },
         blocks: [
-            { x: 0, y: 0, z: 0, w: 4, h: 1, d: 6, color: 0xff8800 },
-            { x: 0, y: 0, z: -20, w: 4, h: 1, d: 30, color: 0xff8800 },
-            { x: 0, y: 0, z: -40, w: 4, h: 1, d: 4, color: 0xff8800 },
+            { x: 0, y: 0, z: 0, w: 4, h: 1, d: 5, color: 0xff8800 },
+            { x: 4, y: 1, z: -8, w: 4, h: 1, d: 4, color: 0xff8800, move: { axis: 'x', range: 4, speed: 2 } },
+            { x: -4, y: 2, z: -16, w: 4, h: 1, d: 4, color: 0xff8800, move: { axis: 'x', range: 4, speed: 2.5 } },
+            { x: 0, y: 3, z: -24, w: 4, h: 1, d: 4, color: 0xff8800, move: { axis: 'z', range: 3, speed: 1.5 } },
+            { x: 0, y: 4, z: -32, w: 6, h: 1, d: 6, color: 0xff8800, move: { axis: 'y', range: 2, speed: 2 } },
+            { x: 0, y: 5, z: -40, w: 6, h: 1, d: 6, color: 0xff8800 },
         ],
-        hazards: [
-            { x: -1.5, y: 0.5, z: -15, w: 1, h: 0.5, d: 10 },
-            { x: 1.5, y: 0.5, z: -25, w: 1, h: 0.5, d: 10 },
-            { x: 0, y: 0.5, z: -20, w: 1, h: 0.5, d: 2 },
-        ],
-        goal: { x: 0, y: 1, z: -40 }
+        hazards: [],
+        goal: { x: 0, y: 6, z: -40 }
     },
     // Level 10 (Swapped from Level 12)
     {
