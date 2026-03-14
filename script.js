@@ -142,6 +142,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const profileNameDisplay = document.getElementById('profile-name');
     const profileBioDisplay = document.getElementById('profile-bio');
     const navProfileIcon = document.getElementById('nav-profile-icon');
+    const navProfileName = document.getElementById('nav-profile-name');
     const iconOptions = document.querySelectorAll('.icon-option');
     let selectedIcon = "👤";
 
@@ -152,6 +153,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
         if (savedName) {
             profileNameDisplay.textContent = savedName;
+            navProfileName.textContent = savedName;
             inputName.value = savedName;
         }
         if (savedBio) {
@@ -205,6 +207,7 @@ window.addEventListener('DOMContentLoaded', () => {
             localStorage.setItem('profile_icon', selectedIcon);
 
             profileNameDisplay.textContent = newName;
+            navProfileName.textContent = newName;
             profileBioDisplay.innerHTML = newBio.replace(/\n/g, '<br>');
             navProfileIcon.textContent = selectedIcon;
 
