@@ -192,47 +192,75 @@ canvas {
     margin-left: 10px;
 }
 
-/* Intro Overlay */
-#intro-overlay {
-    background: transparent;
+/* Character Select */
+.select-content {
+    max-width: 900px !important;
 }
 
-.intro-text {
-    font-size: 6rem;
-    font-weight: 900;
+.char-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    margin: 30px 0;
+}
+
+.char-slot {
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid #333;
+    border-radius: 12px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.char-slot.active {
+    border-color: var(--primary-color);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.char-preview {
+    width: 40px;
+    height: 50px;
+    margin-bottom: 15px;
+    border-radius: 4px;
+}
+
+.char-name {
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.toggle-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    width: 100%;
+}
+
+.toggle-btn {
+    background: #222;
+    border: 1px solid #444;
+    color: #888;
+    padding: 5px;
+    font-size: 0.6rem;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.toggle-btn.active {
+    background: var(--primary-color);
     color: white;
-    text-shadow: 0 0 20px rgba(255, 255, 255, 0.8), 5px 5px 0px #000;
-    font-style: italic;
-    transform: scale(3);
-    opacity: 0;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border-color: white;
 }
 
-.intro-text.active {
-    transform: scale(1);
-    opacity: 1;
+.toggle-btn.cpu.active {
+    background: #0088ff;
 }
 
-/* Screen Shake */
-@keyframes shake {
-    0% { transform: translate(0, 0); }
-    20% { transform: translate(-10px, 5px); }
-    40% { transform: translate(10px, -5px); }
-    60% { transform: translate(-10px, -5px); }
-    80% { transform: translate(10px, 5px); }
-    100% { transform: translate(0, 0); }
-}
-
-.shake {
-    animation: shake 0.2s cubic-bezier(.36,.07,.19,.97) both;
-}
-
-@keyframes pulse-red {
-    0% { box-shadow: inset 0 0 0 rgba(255, 0, 0, 0); }
-    50% { box-shadow: inset 0 0 100px rgba(255, 0, 0, 0.5); }
-    100% { box-shadow: inset 0 0 0 rgba(255, 0, 0, 0); }
-}
-
-.ko-flash {
-    animation: pulse-red 0.5s ease-out;
+.toggle-btn.off.active {
+    background: #444;
 }
