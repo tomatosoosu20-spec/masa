@@ -529,3 +529,45 @@ footer {
     gap: 1rem;
     margin-top: 2rem;
 }
+
+/* Icon Grid Styles */
+#nav-profile-icon {
+    margin-left: 5px;
+    font-size: 1.1rem;
+    vertical-align: middle;
+    transition: transform 0.3s ease;
+    display: inline-block;
+}
+
+#mea-mu-link:hover #nav-profile-icon {
+    transform: scale(1.2);
+}
+
+.icon-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-top: 0.5rem;
+}
+
+.icon-option {
+    font-size: 1.5rem;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s ease;
+}
+
+.icon-option:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+}
+
+.icon-option.selected {
+    border-color: var(--secondary-color);
+    background: rgba(58, 134, 255, 0.1);
+    box-shadow: 0 0 10px rgba(58, 134, 255, 0.3);
+}

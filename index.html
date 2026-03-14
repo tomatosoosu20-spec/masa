@@ -19,7 +19,7 @@
     <header>
         <div class="container">
             <nav class="glass-nav">
-                <a href="#about">mea-mu</a>
+                <a href="#about" id="mea-mu-link">mea-mu <span id="nav-profile-icon">👤</span></a>
                 <ul>
                     <li><a href="#" class="logo nav-logo"><span id="m-secret-trigger"
                                 style="cursor: pointer; display: inline-block; padding: 0 5px;">m</span>asato</a></li>
@@ -193,6 +193,19 @@
             <div class="input-group">
                 <label for="input-bio">Bio / Description</label>
                 <textarea id="input-bio" placeholder="Tell us about yourself..." rows="4"></textarea>
+            </div>
+            <div class="input-group">
+                <label>Select Icon</label>
+                <div id="icon-grid" class="icon-grid">
+                    <span class="icon-option selected" data-icon="👤">👤</span>
+                    <span class="icon-option" data-icon="🌟">🌟</span>
+                    <span class="icon-option" data-icon="🎨">🎨</span>
+                    <span class="icon-option" data-icon="🕹️">🕹️</span>
+                    <span class="icon-option" data-icon="🚀">🚀</span>
+                    <span class="icon-option" data-icon="🔥">🔥</span>
+                    <span class="icon-option" data-icon="💎">💎</span>
+                    <span class="icon-option" data-icon="🌈">🌈</span>
+                </div>
             </div>
             <div class="modal-actions">
                 <button id="closeProfileBtn" class="btn btn-outline">Close</button>

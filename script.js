@@ -141,10 +141,14 @@ window.addEventListener('DOMContentLoaded', () => {
     const inputBio = document.getElementById('input-bio');
     const profileNameDisplay = document.getElementById('profile-name');
     const profileBioDisplay = document.getElementById('profile-bio');
+    const navProfileIcon = document.getElementById('nav-profile-icon');
+    const iconOptions = document.querySelectorAll('.icon-option');
+    let selectedIcon = "👤";
 
     function loadProfile() {
         const savedName = localStorage.getItem('profile_name');
         const savedBio = localStorage.getItem('profile_bio');
+        const savedIcon = localStorage.getItem('profile_icon');
 
         if (savedName) {
             profileNameDisplay.textContent = savedName;
@@ -154,7 +158,29 @@ window.addEventListener('DOMContentLoaded', () => {
             profileBioDisplay.innerHTML = savedBio.replace(/\n/g, '<br>');
             inputBio.value = savedBio;
         }
+        if (savedIcon) {
+            selectedIcon = savedIcon;
+            navProfileIcon.textContent = savedIcon;
+            updateIconGridSelection(savedIcon);
+        }
     }
+
+    function updateIconGridSelection(icon) {
+        iconOptions.forEach(opt => {
+            if (opt.dataset.icon === icon) {
+                opt.classList.add('selected');
+            } else {
+                opt.classList.remove('selected');
+            }
+        });
+    }
+
+    iconOptions.forEach(opt => {
+        opt.addEventListener('click', () => {
+            selectedIcon = opt.dataset.icon;
+            updateIconGridSelection(selectedIcon);
+        });
+    });
 
     if (meaMuLink) {
         meaMuLink.addEventListener('click', (e) => {
@@ -176,9 +202,11 @@ window.addEventListener('DOMContentLoaded', () => {
 
             localStorage.setItem('profile_name', newName);
             localStorage.setItem('profile_bio', newBio);
+            localStorage.setItem('profile_icon', selectedIcon);
 
             profileNameDisplay.textContent = newName;
             profileBioDisplay.innerHTML = newBio.replace(/\n/g, '<br>');
+            navProfileIcon.textContent = selectedIcon;
 
             profileModal.classList.add('hidden');
             alert('プロフィールを保存しました！');
