@@ -126,6 +126,11 @@ header.scrolled {
     letter-spacing: -0.5px;
 }
 
+.nav-logo {
+    font-size: 1rem !important;
+    font-weight: 500 !important;
+}
+
 .glass-nav ul {
     display: flex;
     list-style: none;
