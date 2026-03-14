@@ -1,3 +1,37 @@
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+// Game Constants
+const WIDTH = 800;
+const HEIGHT = 500;
+canvas.width = WIDTH;
+canvas.height = HEIGHT;
+
+const GRAVITY = 0.4;
+const FRICTION = 0.82;
+const MAX_SPEED = 5;
+const JUMP_FORCE = -11;
+const BLAST_ZONE_OFFSET = 180;
+
+// Game State
+let isStarted = false;
+let isGameOver = false;
+let frameCount = 0;
+let players = [];
+const particles = [];
+
+const hudEl = document.getElementById('hud');
+const startScreen = document.getElementById('start-screen');
+const gameoverScreen = document.getElementById('gameover-screen');
+const winnerText = document.getElementById('winner-text');
+const startBtn = document.getElementById('startBtn');
+const retryBtn = document.getElementById('retryBtn');
+
+const COLORS = [
+    "#ff0055", "#0088ff", "#00ff88", "#ffaa00",
+    "#aa00ff", "#00ffff", "#ff00ff", "#ffffff"
+];
+
 const CPU_NAMES = ["STRIKER", "GHOST", "BLADE", "CRINGE", "ALPHA", "OMEGA", "NEON", "PRIME"];
 
 const charSelectScreen = document.getElementById('char-select-screen');
