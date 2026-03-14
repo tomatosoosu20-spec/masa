@@ -7,11 +7,15 @@ const xpBar = document.getElementById('xp-bar');
 const startScreen = document.getElementById('start-screen');
 const gameoverScreen = document.getElementById('gameover-screen');
 const levelupScreen = document.getElementById('levelup-screen');
+const victoryScreen = document.getElementById('victory-screen');
 const upgradeChoicesContainer = document.getElementById('upgrade-choices');
 const finalTimeEl = document.getElementById('finalTime');
 const finalKillsEl = document.getElementById('finalKills');
+const victoryTimeEl = document.getElementById('victoryTime');
 const startBtn = document.getElementById('startBtn');
 const retryBtn = document.getElementById('retryBtn');
+const nextStageBtn = document.getElementById('nextStageBtn');
+const reviveBtn = document.getElementById('reviveBtn');
 const pauseBtn = document.getElementById('pause-btn');
 const resumeBtn = document.getElementById('resume-btn');
 const pauseScreen = document.getElementById('pause-screen');
@@ -38,6 +42,7 @@ let bossSpawned = false;
 let finalBossSpawned = false;
 let isVictory = false;
 let bossProjectiles = [];
+let currentStage = 1;
 
 // Player
 const player = {
@@ -68,14 +73,29 @@ let circularBlasts = []; // Robot A blast
 let robotBProjectiles = []; // Robot B projectiles
 let damageNumbers = []; // Floating numbers
 
-function init() {
+function init(isNextStage = false) {
     isStarted = true;
     isGameOver = false;
     startTime = Date.now();
-    kills = 0;
-    level = 1;
-    xp = 0;
-    xpToNext = 100;
+    
+    // Reset or carry over
+    if (!isNextStage) {
+        currentStage = 1;
+        kills = 0;
+        level = 1;
+        xp = 0;
+        xpToNext = 100;
+        player.inventory = ['pistol'];
+        player.hp = 100;
+        player.maxHp = 100;
+        player.moveSpeedMult = 1;
+        player.atkDamage = 50;
+        magnetRange = 50;
+    } else {
+        // Heal 30% on stage up
+        player.hp = Math.min(player.maxHp, player.hp + (player.maxHp * 0.3));
+    }
+    
     frameCount = 0;
 
     enemies = [];
@@ -106,18 +126,16 @@ function init() {
 
     player.x = WIDTH / 2;
     player.y = HEIGHT / 2;
-    player.hp = 100;
-    player.atkCooldown = 40;
+    player.atkCooldown = player.inventory.includes('pistol') ? Math.max(5, Math.floor(40 * 0.7)) : 40;
     player.lastDirX = 1;
     player.lastDirY = 0;
     player.robotBTimer = 0;
-
-    // Default starting item
-    player.inventory = ['pistol'];
+    player.robotATimer = 0;
 
     startScreen.classList.add('hidden');
     gameoverScreen.classList.add('hidden');
     levelupScreen.classList.add('hidden');
+    victoryScreen.classList.add('hidden');
     isPaused = false;
 
     updateUI();
@@ -278,11 +296,23 @@ function update() {
     const isHordeActive = elapsed >= 210 && elapsed < 240;
 
     // Item Timers
-    if ((player.inventory.includes('robota') || player.inventory.includes('destruction_wave')) && frameCount % 120 === 0) {
+    if (player.inventory.includes('robota') || player.inventory.includes('destruction_wave')) {
         let isWave = player.inventory.includes('destruction_wave');
+        let count = isWave ? 5 : player.inventory.filter(id => id === 'robota').length;
+        
         let color = isWave ? '#ff00ff' : '#fff';
-        let dmg = isWave ? 200 : 150; // 150 + 50
-        circularBlasts.push({ radius: 0, life: 30, damage: dmg, color: color, isDestructionWave: isWave });
+        let dmg = isWave ? 200 : 25; // 25 DMG for Robot A
+        
+        // Base cooldown 120 frames, 30% faster per star
+        const raCooldown = Math.max(20, 120 * Math.pow(0.7, count - 1));
+        
+        if (typeof player.robotATimer === 'undefined') player.robotATimer = 0;
+        player.robotATimer--;
+        
+        if (player.robotATimer <= 0) {
+            circularBlasts.push({ radius: 0, life: 30, damage: dmg, color: color, isDestructionWave: isWave });
+            player.robotATimer = raCooldown;
+        }
     }
 
     if (player.inventory.includes('robotb') || player.inventory.includes('destruction_wave')) {
@@ -386,7 +416,11 @@ function update() {
             } else if (e.isBoss) {
                 gems.push({ x: e.x, y: e.y, xp: xpToNext, isRedOrb: true });
             } else {
-                gems.push({ x: e.x, y: e.y, xp: 20 });
+                if (e.color === '#0088ff' && Math.random() < 0.15) {
+                    gems.push({ x: e.x, y: e.y, xp: 20 * 4, isGreenOrb: true });
+                } else {
+                    gems.push({ x: e.x, y: e.y, xp: 20 });
+                }
             }
 
             // Cursed Piggy Bank effect
@@ -462,15 +496,19 @@ function createDamageNumber(x, y, dmg) {
 }
 
 function spawnFinalBoss() {
+    // Stage multiplier
+    const stageMult = Math.pow(1.5, currentStage - 1);
+    const hp = 50000 * stageMult;
+
     enemies.push({
         x: WIDTH / 2,
         y: -100,
         radius: 60,
         isBoss: true,
         isFinalBoss: true,
-        speed: 1.5,
-        hp: 50000,
-        maxHp: 50000,
+        speed: 1.5 + (currentStage * 0.1),
+        hp: hp,
+        maxHp: hp,
         color: '#ff0000',
         state: 'move',
         stateTimer: 120,
@@ -499,29 +537,42 @@ function spawnEnemy() {
         y = Math.random() > 0.5 ? -20 : HEIGHT + 20;
     }
 
-    const maxHp = (isBlue ? 500 : 300) + (level * 20);
+    // Stage multiplier
+    const stageMult = Math.pow(1.5, currentStage - 1);
+    const maxHp = ((isBlue ? 500 : 300) + (level * 20)) * stageMult;
+    
+    // Switch colors slightly per stage to indicate difficulty increase visually
+    let enemyColor = isBlue ? '#0088ff' : '#ff0033';
+    if (currentStage > 1) {
+        enemyColor = isBlue ? '#00ffff' : '#ff8800'; // Stage 2+ colors
+    }
+
     enemies.push({
         x: x,
         y: y,
         radius: 8,
         isBoss: false,
-        speed: 1 + Math.random() * 0.5 + (level * 0.1),
+        speed: (1 + Math.random() * 0.5 + (level * 0.1)) * (1 + (currentStage - 1) * 0.2),
         hp: maxHp,
         maxHp: maxHp,
-        color: isBlue ? '#0088ff' : '#ff0033'
+        color: enemyColor
     });
 }
 
 function spawnMidBoss() {
     console.log("BOSS SPAWNING!");
+    // Stage multiplier
+    const stageMult = Math.pow(1.5, currentStage - 1);
+    const hp = 5555 * stageMult;
+
     enemies.push({
         x: WIDTH / 2,
         y: -50,
         radius: 40,
         isBoss: true,
-        speed: 0.6,
-        hp: 5555,
-        maxHp: 5555,
+        speed: 0.6 + (currentStage * 0.1),
+        hp: hp,
+        maxHp: hp,
         color: '#ff0000',
         label: 'MID-BOSS'
     });
@@ -549,7 +600,7 @@ const UPGRADES = [
         id: 'pistol',
         name: '拳銃',
         desc: '弾のダメージが50アップし、発射速度が30%向上する。',
-        type: 'stat',
+        type: 'weapon',
         onSelect: () => {
             player.atkDamage += 50;
             player.atkCooldown = Math.max(5, Math.floor(player.atkCooldown * 0.7));
@@ -559,7 +610,7 @@ const UPGRADES = [
     {
         id: 'robota',
         name: 'ロボットA',
-        desc: '円状のエネルギー衝撃波（150 DMG）を定期的に放出する。',
+        desc: '円状のエネルギー衝撃波（25 DMG）を定期的に放出する。星の数により発射速度が30%早くなる。',
         type: 'weapon',
         onSelect: () => {
             player.inventory.push('robota');
@@ -641,7 +692,7 @@ const UPGRADES = [
     },
     {
         id: 'katana',
-        name: '日本刀',
+        name: '🗡️日本刀',
         desc: 'ナイフの進化系。サイズが50%アップし、回転スピードが2倍になる。',
         type: 'weapon',
         onSelect: () => {
@@ -727,7 +778,18 @@ function showLevelUp() {
     }
 
     // Random 3 choices from available ones
-    const shuffled = [...availableUpgrades].sort(() => 0.5 - Math.random());
+    let shuffled = [...availableUpgrades].sort(() => 0.5 - Math.random());
+    
+    // Guarantee at least one weapon on first level up (Level 2)
+    if (level === 2) {
+        const weaponIndex = shuffled.findIndex(u => u.type === 'weapon');
+        if (weaponIndex > 0) {
+            // Move the first found weapon to the front
+            const weapon = shuffled.splice(weaponIndex, 1)[0];
+            shuffled.unshift(weapon);
+        }
+    }
+
     const selected = shuffled.slice(0, 3);
 
     selected.forEach(upgrade => {
@@ -798,6 +860,28 @@ function showPause() {
             pauseInventoryEl.appendChild(itemDiv);
         }
     });
+
+    // Update Evolutions
+    const pauseEvolutionsEl = document.getElementById('pause-evolutions');
+    if (pauseEvolutionsEl) {
+        pauseEvolutionsEl.innerHTML = '<h3 style="margin-top: 15px; margin-bottom: 10px; font-size: 10px; text-align: center; color: #ff00de;">進化レシピ</h3>';
+        EVOLUTIONS.forEach(evo => {
+            const result = UPGRADES.find(u => u.id === evo.resultId);
+            const w1 = UPGRADES.find(u => u.id === evo.reqWeapon);
+            const w2 = UPGRADES.find(u => u.id === evo.reqItem);
+            
+            const evoDiv = document.createElement('div');
+            evoDiv.className = 'pause-item';
+            evoDiv.style.fontSize = '8px';
+            evoDiv.style.justifyContent = 'center';
+            evoDiv.style.gap = '5px';
+            evoDiv.style.padding = '8px';
+            evoDiv.innerHTML = `
+                <span style="color:#aaa">${w1.name}</span> + <span style="color:#aaa">${w2.name}</span> = <span style="color:#00ff41">${result.name}</span>
+            `;
+            pauseEvolutionsEl.appendChild(evoDiv);
+        });
+    }
 }
 
 function draw() {
@@ -820,6 +904,11 @@ function draw() {
             ctx.fillStyle = '#ff0000';
             ctx.shadowBlur = 15; ctx.shadowColor = '#ff0000';
             ctx.fillRect(g.x - 6, g.y - 6, 12, 12);
+            ctx.shadowBlur = 0;
+        } else if (g.isGreenOrb) {
+            ctx.fillStyle = '#00ff41';
+            ctx.shadowBlur = 10; ctx.shadowColor = '#00ff41';
+            ctx.fillRect(g.x - 4, g.y - 4, 8, 8);
             ctx.shadowBlur = 0;
         } else {
             ctx.fillStyle = '#0088ff';
@@ -1008,8 +1097,10 @@ function updateFinalBossAI(e) {
 }
 
 function victory() {
+    if (isVictory) return;
     isVictory = true;
-    // Delay victory screen or just show text
+    victoryTimeEl.innerText = timeEl.innerText;
+    document.getElementById('victory-screen').classList.remove('hidden');
 }
 
 function createParticles(x, y, color, count) {
@@ -1033,6 +1124,28 @@ function gameOver() {
     finalTimeEl.innerText = timeEl.innerText;
     finalKillsEl.innerText = kills;
     gameoverScreen.classList.remove('hidden');
+    
+    // Show revive button if enough kills
+    if (kills >= 100) {
+        reviveBtn.classList.remove('hidden');
+    } else {
+        reviveBtn.classList.add('hidden');
+    }
+}
+
+function revive() {
+    if (kills < 100) return;
+    
+    kills -= 100;
+    player.hp = player.maxHp;
+    isGameOver = false;
+    
+    // Clear enemies near player for safety
+    enemies = enemies.filter(e => Math.hypot(e.x - player.x, e.y - player.y) > 150 || e.isBoss);
+    
+    gameoverScreen.classList.add('hidden');
+    updateUI();
+    requestAnimationFrame(loop);
 }
 
 // Input
@@ -1040,8 +1153,13 @@ const keys = {};
 window.addEventListener('keydown', e => keys[e.code] = true);
 window.addEventListener('keyup', e => keys[e.code] = false);
 
-startBtn.addEventListener('click', init);
-retryBtn.addEventListener('click', init);
+startBtn.addEventListener('click', () => init(false));
+retryBtn.addEventListener('click', () => init(false));
+nextStageBtn.addEventListener('click', () => {
+    currentStage++;
+    init(true);
+});
+reviveBtn.addEventListener('click', revive);
 pauseBtn.addEventListener('click', showPause);
 resumeBtn.addEventListener('click', resumeGame);
 

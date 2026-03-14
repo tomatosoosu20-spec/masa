@@ -46,6 +46,16 @@
                     <p>Survived: <span id="finalTime">00:00</span></p>
                     <p>Kills: <span id="finalKills">0</span></p>
                     <button id="retryBtn" class="pixel-btn">TRY AGAIN</button>
+                    <button id="reviveBtn" class="pixel-btn hidden">REVIVE (100 KILLS)</button>
+                </div>
+            </div>
+
+            <div id="victory-screen" class="overlay hidden">
+                <div class="overlay-content">
+                    <h1 class="text-blue">STAGE CLEARED!</h1>
+                    <p>You have conquered the swarm.</p>
+                    <p>Time: <span id="victoryTime">00:00</span></p>
+                    <button id="nextStageBtn" class="pixel-btn">NEXT STAGE</button>
                 </div>
             </div>
 
@@ -66,6 +76,9 @@
                         <p>Elapsed: <span id="pause-time">00:00</span></p>
                         <div id="pause-inventory">
                             <!-- Items appear here -->
+                        </div>
+                        <div id="pause-evolutions">
+                            <!-- Evolution recipes appear here -->
                         </div>
                     </div>
                     <button id="resume-btn" class="pixel-btn">RESUME</button>
