@@ -1,0 +1,193 @@
+:root {
+    --bg-dark: #0a0a0f;
+    --primary-color: #ff0055;
+    --secondary-color: #0088ff;
+    --text-color: #ffffff;
+    --glass-bg: rgba(255, 255, 255, 0.05);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --pixel-font: 'Outfit', sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    user-select: none;
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-color);
+    font-family: var(--pixel-font);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.game-container {
+    width: 100%;
+    max-width: 800px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.game-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 10px;
+}
+
+.back-link {
+    color: #666;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: color 0.3s;
+}
+
+.back-link:hover {
+    color: white;
+}
+
+.game-title {
+    font-weight: 700;
+    letter-spacing: 2px;
+    font-size: 1.2rem;
+    background: linear-gradient(to bottom, #fff, #888);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+#controls-hint {
+    font-size: 0.7rem;
+    color: #444;
+}
+
+.canvas-wrapper {
+    position: relative;
+    width: 800px;
+    height: 500px;
+    background: #111;
+    border: 4px solid #222;
+    border-radius: 8px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+
+canvas {
+    width: 100%;
+    height: 100%;
+}
+
+/* HUD */
+#hud {
+    position: absolute;
+    bottom: 20px;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    pointer-events: none;
+}
+
+.player-stats {
+    background: rgba(0, 0, 0, 0.7);
+    padding: 10px 30px;
+    border-radius: 12px;
+    border-bottom: 3px solid transparent;
+    text-align: center;
+    min-width: 150px;
+    backdrop-filter: blur(5px);
+}
+
+.p1 { border-color: var(--primary-color); }
+.p2 { border-color: var(--secondary-color); }
+
+.p-name {
+    font-size: 0.8rem;
+    color: #888;
+    margin-bottom: 5px;
+}
+
+.percent {
+    font-size: 2.2rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.lives {
+    font-size: 0.9rem;
+    color: #ff4141;
+    margin-top: 5px;
+}
+
+/* Overlays */
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    border-radius: 4px;
+}
+
+.hidden { display: none; }
+
+.overlay-content {
+    text-align: center;
+}
+
+.overlay-content h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    background: linear-gradient(135deg, #fff, #555);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.overlay-content p {
+    color: #666;
+    margin-bottom: 30px;
+}
+
+.pixel-btn {
+    background: #fff;
+    color: #000;
+    border: none;
+    padding: 12px 30px;
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    border-radius: 30px;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.pixel-btn:hover {
+    transform: scale(1.05);
+    background: var(--primary-color);
+    color: white;
+}
+
+.pixel-btn.outline {
+    background: transparent;
+    border: 2px solid white;
+    color: white;
+    margin-left: 10px;
+}
+
+.pixel-btn.outline:hover {
+    background: white;
+    color: black;
+}

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Pixel Smash | Game Park</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="smash.css">
+</head>
+<body>
+    <div class="game-container">
+        <header class="game-header">
+            <a href="index.html" class="back-link">← Portfolio</a>
+            <div class="game-title">SUPER PIXEL SMASH</div>
+            <div id="controls-hint">P1: WASD + F/G | P2: ARROWS + K/L</div>
+        </header>
+
+        <div class="canvas-wrapper">
+            <canvas id="gameCanvas"></canvas>
+            
+            <!-- HUD -->
+            <div id="hud">
+                <div class="player-stats p1">
+                    <div class="p-name">PLAYER 1</div>
+                    <div id="p1-percent" class="percent">0%</div>
+                    <div id="p1-lives" class="lives">❤❤❤</div>
+                </div>
+                <div class="player-stats p2">
+                    <div class="p-name">PLAYER 2</div>
+                    <div id="p2-percent" class="percent">0%</div>
+                    <div id="p2-lives" class="lives">❤❤❤</div>
+                </div>
+            </div>
+
+            <!-- Overlays -->
+            <div id="start-screen" class="overlay">
+                <div class="overlay-content">
+                    <h1>SUPER PIXEL SMASH</h1>
+                    <p>Knock them off the stage!</p>
+                    <button id="startBtn" class="pixel-btn">FIGHT!</button>
+                </div>
+            </div>
+
+            <div id="gameover-screen" class="overlay hidden">
+                <div class="overlay-content">
+                    <h1 id="winner-text">P1 WINS!</h1>
+                    <button id="retryBtn" class="pixel-btn">REMATCH</button>
+                    <a href="index.html" class="pixel-btn outline">EXIT</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="smash.js"></script>
+</body>
+</html>
