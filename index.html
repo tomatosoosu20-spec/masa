@@ -35,8 +35,8 @@
             <div class="container">
                 <div class="hero-content fade-in">
                     <span class="subtitle">Digital Creator</span>
-                    <h1>Game Park</h1>
-                    <p class="bio">
+                    <h1 id="profile-name">Game Park</h1>
+                    <p class="bio" id="profile-bio">
                         デジタル領域で新しい体験を創造するクリエイター。<br>
                         ピンポンゲームでポイントを集めろ
                     </p>
@@ -181,6 +181,25 @@
             <p>&copy; 2024 masato. All rights reserved.</p>
         </div>
     </footer>
+
+    <!-- Profile Modal -->
+    <div id="profile-modal" class="modal-overlay hidden">
+        <div class="modal-content glass-card fade-up">
+            <h2 class="modal-title">Edit Profile</h2>
+            <div class="input-group">
+                <label for="input-name">Display Name</label>
+                <input type="text" id="input-name" placeholder="Your Name">
+            </div>
+            <div class="input-group">
+                <label for="input-bio">Bio / Description</label>
+                <textarea id="input-bio" placeholder="Tell us about yourself..." rows="4"></textarea>
+            </div>
+            <div class="modal-actions">
+                <button id="closeProfileBtn" class="btn btn-outline">Close</button>
+                <button id="saveProfileBtn" class="btn btn-primary">Save Changes</button>
+            </div>
+        </div>
+    </div>
 
     <script src="script.js"></script>
 </body>

@@ -131,4 +131,66 @@ window.addEventListener('DOMContentLoaded', () => {
     });
 
     updateGamePurchaseUI();
+
+    // Profile Modal Logic
+    const profileModal = document.getElementById('profile-modal');
+    const meaMuLink = document.querySelector('a[href="#about"]');
+    const closeProfileBtn = document.getElementById('closeProfileBtn');
+    const saveProfileBtn = document.getElementById('saveProfileBtn');
+    const inputName = document.getElementById('input-name');
+    const inputBio = document.getElementById('input-bio');
+    const profileNameDisplay = document.getElementById('profile-name');
+    const profileBioDisplay = document.getElementById('profile-bio');
+
+    function loadProfile() {
+        const savedName = localStorage.getItem('profile_name');
+        const savedBio = localStorage.getItem('profile_bio');
+
+        if (savedName) {
+            profileNameDisplay.textContent = savedName;
+            inputName.value = savedName;
+        }
+        if (savedBio) {
+            profileBioDisplay.innerHTML = savedBio.replace(/\n/g, '<br>');
+            inputBio.value = savedBio;
+        }
+    }
+
+    if (meaMuLink) {
+        meaMuLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            profileModal.classList.remove('hidden');
+        });
+    }
+
+    if (closeProfileBtn) {
+        closeProfileBtn.addEventListener('click', () => {
+            profileModal.classList.add('hidden');
+        });
+    }
+
+    if (saveProfileBtn) {
+        saveProfileBtn.addEventListener('click', () => {
+            const newName = inputName.value.trim() || "Game Park";
+            const newBio = inputBio.value.trim() || profileBioDisplay.innerHTML.replace(/<br>/g, '\n');
+
+            localStorage.setItem('profile_name', newName);
+            localStorage.setItem('profile_bio', newBio);
+
+            profileNameDisplay.textContent = newName;
+            profileBioDisplay.innerHTML = newBio.replace(/\n/g, '<br>');
+
+            profileModal.classList.add('hidden');
+            alert('プロフィールを保存しました！');
+        });
+    }
+
+    // Modal close on outside click
+    profileModal.addEventListener('click', (e) => {
+        if (e.target === profileModal) {
+            profileModal.classList.add('hidden');
+        }
+    });
+
+    loadProfile();
 });
