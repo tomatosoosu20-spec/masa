@@ -40,10 +40,15 @@ const canvasWrapper = document.querySelector('.canvas-wrapper');
 
 let screenShakeTimer = 0;
 
+// Keyboard State
+const keys = {};
+window.addEventListener('keydown', e => keys[e.code] = true);
+window.addEventListener('keyup', e => keys[e.code] = false);
+
 class Player {
     constructor(id, x, y, color) {
         this.id = id;
-        this.name = CPU_NAMES[id - 1];
+        this.name = id === 1 ? "YOU" : CPU_NAMES[id - 1];
         this.x = x;
         this.y = y;
         this.width = 24;
@@ -55,7 +60,7 @@ class Player {
         this.lives = 3;
         this.grounded = false;
         this.jumpCount = 0;
-        this.facing = Math.random() > 0.5 ? 1 : -1;
+        this.facing = id === 1 ? 1 : (Math.random() > 0.5 ? 1 : -1);
         this.isAttacking = false;
         this.attackTimer = 0;
         this.attackCooldown = 0;
@@ -64,8 +69,10 @@ class Player {
         this.spawnY = y;
         this.target = null;
         this.aiDecisionTimer = 0;
-        this.isCPU = true;
+        this.isCPU = id !== 1; // Only the first character is NOT a CPU
         this.trails = [];
+        this.upPressed = false;
+        this.attackPressed = false;
     }
 
     update() {
@@ -89,8 +96,10 @@ class Player {
             return;
         }
 
-        if (this.isCPU && isStarted && !isPaused) {
-            this.handleAI();
+        if (this.isCPU) {
+            if (isStarted && !isPaused) this.handleAI();
+        } else {
+            this.handleInput();
         }
 
         // Gravity
@@ -108,6 +117,39 @@ class Player {
             if (this.attackTimer === 0) this.isAttacking = false;
         }
         if (this.attackCooldown > 0) this.attackCooldown--;
+    }
+
+    handleInput() {
+        if (isPaused) return;
+
+        // Horizontal Movement
+        if (keys['KeyA'] || keys['ArrowLeft']) {
+            this.dx = -MAX_SPEED;
+            this.facing = -1;
+        } else if (keys['KeyD'] || keys['ArrowRight']) {
+            this.dx = MAX_SPEED;
+            this.facing = 1;
+        } else {
+            this.dx *= FRICTION;
+        }
+
+        // Jump (WASD or Arrows)
+        if ((keys['KeyW'] || keys['ArrowUp']) && !this.upPressed) {
+            if (this.jumpCount < 2) {
+                this.dy = JUMP_FORCE;
+                this.jumpCount++;
+                this.grounded = false;
+            }
+            this.upPressed = true;
+        }
+        if (!keys['KeyW'] && !keys['ArrowUp']) this.upPressed = false;
+
+        // Attack (F or Space)
+        if ((keys['KeyF'] || keys['Space']) && !this.attackPressed && this.attackCooldown <= 0) {
+            this.performAttack();
+            this.attackPressed = true;
+        }
+        if (!keys['KeyF'] && !keys['Space']) this.attackPressed = false;
     }
 
     handleAI() {
