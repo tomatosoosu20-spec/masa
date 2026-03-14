@@ -85,43 +85,48 @@ canvas {
 /* HUD */
 #hud {
     position: absolute;
-    bottom: 20px;
+    bottom: 10px;
     left: 0;
     width: 100%;
-    display: flex;
-    justify-content: space-around;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    padding: 0 10px;
     pointer-events: none;
 }
 
 .player-stats {
     background: rgba(0, 0, 0, 0.7);
-    padding: 10px 30px;
-    border-radius: 12px;
+    padding: 5px 10px;
+    border-radius: 8px;
     border-bottom: 3px solid transparent;
     text-align: center;
-    min-width: 150px;
     backdrop-filter: blur(5px);
+    transition: all 0.3s ease;
 }
 
-.p1 { border-color: var(--primary-color); }
-.p2 { border-color: var(--secondary-color); }
+.player-stats.eliminated {
+    opacity: 0.3;
+    filter: grayscale(1);
+    transform: scale(0.9);
+}
 
 .p-name {
-    font-size: 0.8rem;
+    font-size: 0.6rem;
     color: #888;
-    margin-bottom: 5px;
+    margin-bottom: 2px;
 }
 
 .percent {
-    font-size: 2.2rem;
+    font-size: 1.4rem;
     font-weight: 700;
     line-height: 1;
 }
 
 .lives {
-    font-size: 0.9rem;
+    font-size: 0.7rem;
     color: #ff4141;
-    margin-top: 5px;
+    margin-top: 2px;
 }
 
 /* Overlays */
