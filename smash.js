@@ -208,6 +208,8 @@ class Player {
                 if (distY < -50 && this.grounded) {
                     this.dy = JUMP_FORCE;
                     this.grounded = false;
+                } else if (distY > 50 && this.grounded && Math.random() < 0.2) {
+                    this.dropTimer = 10;
                 }
             } else {
                 this.dx *= FRICTION;
