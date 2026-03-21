@@ -511,8 +511,6 @@ class Player {
         
         let damageBoost = 1;
         if (this.heldItem && this.heldItem.type === 'legendStar') {
-            hbW *= 5;
-            hbH *= 5;
             damageBoost = 5;
             this.heldItem = null; // Consume star
             createParticles(this.x + this.width/2, this.y + this.height/2, "yellow", 20);
