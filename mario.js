@@ -2,6 +2,7 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const scoreEl = document.getElementById('score');
 const hpEl = document.getElementById('hp');
+const noSpikesBtn = document.getElementById('noSpikesBtn');
 const restartBtn = document.getElementById('restartBtn');
 
 // Game constants
@@ -14,6 +15,7 @@ let score = 0;
 let isGameOver = false;
 let animationId;
 let currentLevelIndex = 0;
+let isNoSpikesMode = false;
 
 // Input
 const keys = {
@@ -288,6 +290,10 @@ window.addEventListener('keyup', (e) => {
 });
 
 restartBtn.addEventListener('click', resetGame);
+noSpikesBtn.addEventListener('click', () => {
+    isNoSpikesMode = !isNoSpikesMode;
+    noSpikesBtn.innerText = `針なしモード: ${isNoSpikesMode ? 'ON' : 'OFF'}`;
+});
 
 function resetGame() {
     player.jumpCount = 0;
@@ -363,7 +369,8 @@ function update() {
     }
 
     // Spike Collision logic
-    spikes.forEach(s => {
+    if (!isNoSpikesMode) {
+        spikes.forEach(s => {
         // AABB check first
         if (player.x < s.x + s.width &&
             player.x + player.width > s.x &&
@@ -413,7 +420,8 @@ function update() {
                 }
             }
         }
-    });
+        });
+    }
 
     // Pitfall check
     if (player.y > canvas.height) {
@@ -572,8 +580,9 @@ function render() {
     });
 
     // Draw Spikes
-    ctx.fillStyle = '#aaa'; // Grey spikes
-    spikes.forEach(s => {
+    if (!isNoSpikesMode) {
+        ctx.fillStyle = '#aaa'; // Grey spikes
+        spikes.forEach(s => {
         // Draw Triangle
         ctx.beginPath();
         ctx.moveTo(s.x, s.y + s.height); // Bottom left
@@ -582,7 +591,8 @@ function render() {
         ctx.closePath();
         ctx.fill();
         ctx.stroke();
-    });
+        });
+    }
 
     // Draw Coins
     coins.forEach(c => {
