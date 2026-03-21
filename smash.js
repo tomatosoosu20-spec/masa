@@ -441,17 +441,12 @@ class Player {
             knockbackMult = 1.2;
         }
 
-        let hitAny = false;
         players.forEach(p => {
             if (p !== this && p.lives > 0 && !p.invincible && this.checkHit(hitBox, p)) {
                 p.takeHit(this.facing, this.percent, damage, knockbackMult);
-                hitAny = true;
+                this.onHitSuccess();
             }
         });
-
-        if (hitAny) {
-            this.onHitSuccess();
-        }
     }
 
     onHitSuccess() {
