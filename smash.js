@@ -94,7 +94,6 @@ class Item {
         ctx.textBaseline = "middle";
         let icon = "🍄";
         if (this.type === 'gun') icon = "🔫";
-        if (this.type === 'flag') icon = "🚩";
         ctx.fillText(icon, x + this.width/2, y + this.height/2);
     }
 }
@@ -171,8 +170,6 @@ class Player {
         this.heldItem = null;
         this.mushroomTimer = 0;
         this.sizeMult = 1;
-        this.flagTimer = 0;
-        this.flagHits = 0;
         this.invincible = false;
         this.invincibleTimer = 0;
         
@@ -220,18 +217,6 @@ class Player {
                 this.width = 24 * this.sizeMult;
                 this.height = 32 * this.sizeMult;
             }
-        }
-
-        if (this.heldItem && this.heldItem.type === 'flag' && keys[this.controls.special]) {
-            this.flagTimer++;
-            if (this.flagTimer >= 300) { // 5 seconds
-                this.lives++;
-                this.heldItem = null;
-                this.flagTimer = 0;
-                createParticles(this.x + this.width/2, this.y + this.height/2, '#00ff00', 20);
-            }
-        } else {
-            this.flagTimer = 0;
         }
 
         this.updateTrails();
@@ -285,7 +270,7 @@ class Player {
             this.dropTimer = 10;
         }
 
-        if ((keys[this.controls.attack] || (keys[this.controls.special] && this.heldItem && this.heldItem.type !== 'flag')) && !this.attackPressed && this.attackCooldown <= 0) {
+        if ((keys[this.controls.attack] || (keys[this.controls.special] && this.heldItem)) && !this.attackPressed && this.attackCooldown <= 0) {
             this.performAttack();
             this.attackPressed = true;
         }
@@ -441,17 +426,6 @@ class Player {
         this.dy = -force * 0.5;
         createParticles(this.x + this.width/2, this.y + this.height/2, this.color);
         
-        // Flag logic: Reset timer and consume durability
-        if (this.heldItem && this.heldItem.type === 'flag') {
-            this.flagTimer = 0;
-            this.flagHits++;
-            if (this.flagHits >= 3) {
-                this.heldItem = null;
-                this.flagHits = 0;
-                createParticles(this.x + this.width/2, this.y + this.height/2, '#ff0000', 10);
-            }
-        }
-
         if (this.percent > 50) screenShakeTimer = 10;
         this.invincible = true;
         this.invincibleTimer = 30; // 0.5 seconds of invincibility
@@ -503,7 +477,6 @@ class Player {
         this.heldItem = null;
         this.mushroomTimer = 0;
         this.sizeMult = 1;
-        this.flagHits = 0;
         this.width = 24;
         this.height = 32;
     }
@@ -513,19 +486,6 @@ class Player {
 
         ctx.save();
         
-        // Draw Flag charging circle
-        if (this.heldItem && this.heldItem.type === 'flag' && this.flagTimer > 0) {
-            ctx.beginPath();
-            ctx.arc(this.x + this.width/2, this.y - 20, 15, 0, Math.PI * 2);
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.arc(this.x + this.width/2, this.y - 20, 15, -Math.PI/2, -Math.PI/2 + (this.flagTimer/300) * Math.PI * 2);
-            ctx.strokeStyle = '#00ff00';
-            ctx.lineWidth = 3;
-            ctx.stroke();
-        }
-
         if (this.invincible && Math.floor(Date.now() / 100) % 2 === 0) ctx.globalAlpha = 0.5;
 
         this.trails.forEach(t => {
@@ -677,7 +637,7 @@ function update() {
     
     // Spawn items
     if (frameCount % 420 === 0 && items.length < 4) {
-        const types = ['mushroom', 'gun', 'flag'];
+        const types = ['mushroom', 'gun'];
         const type = types[Math.floor(Math.random() * types.length)];
         items.push(new Item(100 + Math.random() * (WIDTH - 200), -50, type));
     }
