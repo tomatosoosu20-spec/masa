@@ -788,11 +788,12 @@ const STAGES = [
         { x: 250, y: 110, width: 300, height: 10 }
     ],
     [ // Islands
-        { x: 80, y: 360, width: 160, height: 20 },
-        { x: 560, y: 360, width: 160, height: 20 },
-        { x: 320, y: 240, width: 160, height: 20 },
-        { x: 100, y: 120, width: 150, height: 10 },
-        { x: 550, y: 120, width: 150, height: 10 }
+        { x: 320, y: 400, width: 160, height: 20 },
+        { x: 80, y: 310, width: 140, height: 15 },
+        { x: 580, y: 310, width: 140, height: 15 },
+        { x: 220, y: 200, width: 120, height: 10 },
+        { x: 460, y: 200, width: 120, height: 10 },
+        { x: 340, y: 100, width: 120, height: 10 }
     ]
 ];
 
