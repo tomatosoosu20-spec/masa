@@ -32,6 +32,17 @@ const COLORS = [
     "#aa00ff", "#00ffff", "#ff00ff", "#ffffff"
 ];
 
+const COLOR_NAMES_JP = {
+    "#ff0055": "赤色",
+    "#0088ff": "青色",
+    "#00ff88": "緑色",
+    "#ffaa00": "黄色",
+    "#aa00ff": "紫色",
+    "#00ffff": "水色",
+    "#ff00ff": "桃色",
+    "#ffffff": "白色"
+};
+
 const CPU_NAMES = ["ストライカー", "ゴースト", "ブレード", "クリンジ", "アルファ", "オメガ", "ネオン", "プライム"];
 
 const charSelectScreen = document.getElementById('char-select-screen');
@@ -998,7 +1009,9 @@ function checkGameOver() {
             finishGame(`${teamName}の勝利！`, teamColor);
             return;
         } else if (alive.length === 1) {
-            finishGame(`${alive[0].name}の勝利！`, alive[0].color);
+            const winner = alive[0];
+            const colorName = COLOR_NAMES_JP[winner.color] || "???";
+            finishGame(`${colorName}の勝利！`, winner.color);
             return;
         }
     }
