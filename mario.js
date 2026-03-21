@@ -1,6 +1,7 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const scoreEl = document.getElementById('score');
+const hpEl = document.getElementById('hp');
 const restartBtn = document.getElementById('restartBtn');
 
 // Game constants
@@ -33,6 +34,7 @@ const player = {
     grounded: false,
     jumpCount: 0,
     comboTimer: null,
+    hp: 3,
     color: '#e60012', // Red mario
     image: new Image()
 };
@@ -288,11 +290,9 @@ window.addEventListener('keyup', (e) => {
 restartBtn.addEventListener('click', resetGame);
 
 function resetGame() {
-    player.x = 100;
-    player.y = 100;
-    player.dx = 0;
-    player.dy = 0;
     player.jumpCount = 0;
+    player.hp = 3;
+    hpEl.innerText = player.hp;
     score = 0;
     scoreEl.innerText = score;
     isGameOver = false;
@@ -513,6 +513,15 @@ function update() {
 }
 
 function gameOver() {
+    player.hp--;
+    hpEl.innerText = player.hp;
+
+    if (player.hp > 0) {
+        // Respawn in same level
+        loadLevel(currentLevelIndex);
+        return;
+    }
+
     isGameOver = true;
     render();
 
