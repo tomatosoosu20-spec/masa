@@ -229,7 +229,7 @@ function startGame(mode) {
 // Player
 const playerParams = {
     size: 1,
-    speed: 0.15,
+    speed: 0.165,
     jumpForce: 0.25,
     gravity: 0.01
 };
