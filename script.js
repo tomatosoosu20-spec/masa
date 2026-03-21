@@ -43,7 +43,11 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 window.addEventListener('DOMContentLoaded', () => {
     const totalPointsEl = document.getElementById('totalPoints');
     if (totalPointsEl) {
-        const points = localStorage.getItem('pong_total_points') || 0;
+        let points = localStorage.getItem('pong_total_points');
+        if (points === null) {
+            points = 100;
+            localStorage.setItem('pong_total_points', points);
+        }
         totalPointsEl.textContent = points;
     }
 

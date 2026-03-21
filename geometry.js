@@ -43,7 +43,13 @@ const shopScreen = document.getElementById('shop-screen');
 const shopItemsContainer = document.getElementById('shopItemsContainer');
 
 // Shop State
-let pongPoints = parseInt(localStorage.getItem('pong_total_points')) || 0;
+let pongPoints = localStorage.getItem('pong_total_points');
+if (pongPoints === null) {
+    pongPoints = 100;
+    localStorage.setItem('pong_total_points', pongPoints);
+} else {
+    pongPoints = parseInt(pongPoints);
+}
 
 const skins = [
     { id: 'red', name: 'RED SKIN', color: 0xff0000, price: 50 },

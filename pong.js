@@ -40,7 +40,13 @@ const ai = {
 
 const WINNING_SCORE = 5;
 let isGameOver = false;
-let totalPoints = parseInt(localStorage.getItem('pong_total_points')) || 0;
+let totalPoints = localStorage.getItem('pong_total_points');
+if (totalPoints === null) {
+    totalPoints = 100;
+    localStorage.setItem('pong_total_points', totalPoints);
+} else {
+    totalPoints = parseInt(totalPoints);
+}
 
 // Update UI on load
 window.addEventListener('load', () => {
