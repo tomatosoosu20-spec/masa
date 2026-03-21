@@ -300,6 +300,11 @@ class Player {
         this.invincibleTimer = 0;
         this.energyDrinkTimer = 0;
         
+        this.jumpCount = 0;
+        this.maxJumps = 2;
+        this.jumpPowerMult = 1.0;
+        this.grounded = false;
+        
         // Ability stats
         this.speedMult = 1.0;
         this.rangeMult = 1.0;
@@ -310,7 +315,6 @@ class Player {
         if (this.color === '#00ff88') { // Green
             this.maxJumps = 4;
             this.jumpPowerMult = 0.5;
-            this.rangeMult = 1.0; 
         }
         if (this.color === '#00ffff') { this.speedMult = 1.15; this.rangeMult = 1.15; } // Cyan
 
