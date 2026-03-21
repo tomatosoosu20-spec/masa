@@ -96,12 +96,11 @@ canvas {
 }
 
 .player-stats {
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(255, 255, 255, 0.1);
     padding: 5px 10px;
     border-radius: 8px;
-    border-bottom: 3px solid transparent;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     text-align: center;
-    backdrop-filter: blur(5px);
     transition: all 0.3s ease;
 }
 

@@ -926,9 +926,9 @@ function updateHUD() {
              setTimeout(() => percentEl.style.transform = "scale(1)", 100);
         }
         const r = 255;
-        const g = Math.max(0, 255 - p.percent * 2);
-        const b = Math.max(0, 255 - p.percent * 3);
-        percentEl.style.color = `rgb(${r}, ${g}, ${b})`;
+        const g = Math.max(180, 255 - p.percent * 0.5);
+        const b = Math.max(180, 255 - p.percent * 0.5);
+        percentEl.style.color = `rgba(${r}, ${g}, ${b}, 0.8)`;
     });
 }
 
