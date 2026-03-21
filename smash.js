@@ -413,8 +413,12 @@ class Player {
 
         // Base HitBox
         let hbW = 35 * this.rangeMult;
-        if (this.mushroomTimer > 0) hbW *= 2;
         let hbH = (this.height + 20) * this.rangeMult;
+        
+        if (this.mushroomTimer > 0) {
+            hbW *= 2;
+            hbH *= 2;
+        }
         
         // Red: range increases with percent
         if (this.color === '#ff0055') {
