@@ -72,6 +72,28 @@ const CONTROL_SCHEMES = [
     { up: 'KeyI', down: 'KeyK', left: 'KeyJ', right: 'KeyL', attack: 'KeyO', special: 'KeyP' },
     { up: 'Numpad8', down: 'Numpad5', left: 'Numpad4', right: 'Numpad6', attack: 'Numpad7', special: 'Numpad9' }
 ];
+
+let audioCtx = null;
+function playSound(freq, type, duration) {
+    try {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+    } catch (e) {
+        console.log("Audio not supported or blocked");
+    }
+}
+
 let items = [];
 let projectiles = [];
 
@@ -855,25 +877,37 @@ function init() {
 }
 
 function startCountdown() {
+    isPaused = true;
     introOverlay.classList.remove('hidden');
-    introText.textContent = "READY?";
-    introText.style.color = "white";
-    setTimeout(() => {
-        introText.classList.add('active');
-        setTimeout(() => {
+    
+    const count = ["3", "2", "1", "GO!"];
+    let i = 0;
+    
+    function next() {
+        if (i < count.length) {
+            introText.textContent = count[i];
+            introText.style.color = i === 3 ? "#ffdd00" : "white";
             introText.classList.remove('active');
-            setTimeout(() => {
-                introText.textContent = "GO!";
-                introText.style.color = "#ffdd00";
-                introText.classList.add('active');
-                isPaused = false;
-                setTimeout(() => {
-                    introOverlay.classList.add('hidden');
-                    introText.classList.remove('active');
-                }, 800);
-            }, 200);
-        }, 800);
-    }, 100);
+            void introText.offsetWidth; // trigger reflow
+            introText.classList.add('active');
+            
+            // Sound
+            if (i === 3) playSound(880, "square", 0.4); // GO (Higher)
+            else playSound(440, "square", 0.2); // 3, 2, 1
+            
+            i++;
+            if (i === 4) {
+                 isPaused = false;
+                 setTimeout(() => {
+                     introOverlay.classList.add('hidden');
+                     introText.classList.remove('active');
+                 }, 800);
+            } else {
+                 setTimeout(next, 800);
+            }
+        }
+    }
+    next();
 }
 
 function loop() {
@@ -946,19 +980,31 @@ function updateHUD() {
 function draw() {
     ctx.fillStyle = "#0a0a14";
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
-    const rad = ctx.createRadialGradient(WIDTH/2, HEIGHT/2, 50, WIDTH/2, HEIGHT/2, 400);
-    rad.addColorStop(0, "rgba(30, 30, 60, 0.2)");
-    rad.addColorStop(1, "rgba(0, 0, 0, 0)");
+    
+    // Improved depth with stronger vignette
+    const rad = ctx.createRadialGradient(WIDTH/2, HEIGHT/2, 50, WIDTH/2, HEIGHT/2, 450);
+    rad.addColorStop(0, "rgba(50, 50, 100, 0.2)");
+    rad.addColorStop(1, "rgba(0, 0, 0, 0.6)");
     ctx.fillStyle = rad;
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
     stage.forEach((p, i) => {
+        // Draw 3D Side (Depth)
+        ctx.fillStyle = i === 0 ? "#0d0d0d" : "#1a1a1a";
+        ctx.fillRect(p.x, p.y + p.height, p.width, 10);
+        
+        // Draw Top
         ctx.fillStyle = i === 0 ? "#1a1a1a" : "#333";
         ctx.fillRect(p.x, p.y, p.width, p.height);
-        ctx.strokeStyle = i === 0 ? "#444" : "#666";
-        ctx.lineWidth = 2;
+        
+        // Highlights
+        ctx.strokeStyle = i === 0 ? "#333" : "#444";
+        ctx.lineWidth = 1;
         ctx.strokeRect(p.x, p.y, p.width, p.height);
+        
+        // Platform "Glow" line
         ctx.beginPath();
-        ctx.strokeStyle = i === 0 ? "#ff005544" : "#0088ff44";
+        ctx.strokeStyle = i === 0 ? "#ff005533" : "#0088ff33";
         ctx.moveTo(p.x, p.y + p.height);
         ctx.lineTo(p.x + p.width, p.y + p.height);
         ctx.stroke();
