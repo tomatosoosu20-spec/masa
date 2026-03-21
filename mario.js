@@ -355,7 +355,7 @@ function update() {
             // Start timer for next jump combo window (e.g. 0.3s)
             player.comboTimer = setTimeout(() => {
                 player.jumpCount = 0;
-            }, 300);
+            }, 400);
         } else {
             // Landed after 3rd jump or invalid state, reset
             player.jumpCount = 0;
