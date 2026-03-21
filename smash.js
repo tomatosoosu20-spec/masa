@@ -625,7 +625,7 @@ class Player {
     }
 
     onHitSuccess() {
-        if (this.color === '#ff00ff') this.percent = Math.max(0, this.percent - 1); // Pink heal
+        if (this.color === '#ff00ff') this.percent = Math.max(0, this.percent - 2.5); // Pink heal
         if (this.color === '#aa00ff') { // Purple combo
             this.comboCount++;
             this.comboTimer = 120; // 2 seconds to keep combo
