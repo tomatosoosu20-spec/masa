@@ -307,7 +307,11 @@ class Player {
         this.comboTimer = 0;
         
         if (this.color === '#0088ff') this.speedMult = 1.3; // Blue
-        if (this.color === '#00ff88') this.rangeMult = 1.3; // Green
+        if (this.color === '#00ff88') { // Green
+            this.maxJumps = 4;
+            this.jumpPowerMult = 0.5;
+            this.rangeMult = 1.0; 
+        }
         if (this.color === '#00ffff') { this.speedMult = 1.15; this.rangeMult = 1.15; } // Cyan
 
         // Control scheme index
@@ -406,8 +410,8 @@ class Player {
         }
 
         if (keys[this.controls.up] && !this.upPressed) {
-            if (this.jumpCount < 2) {
-                this.dy = JUMP_FORCE;
+            if (this.jumpCount < this.maxJumps) {
+                this.dy = JUMP_FORCE * this.jumpPowerMult;
                 this.jumpCount++;
                 this.grounded = false;
             }
@@ -450,8 +454,8 @@ class Player {
             let currentMaxSpeed = MAX_SPEED * this.speedMult;
             if (this.energyDrinkTimer > 0) currentMaxSpeed *= 2;
             this.dx = (targetX > this.x ? 1 : -1) * currentMaxSpeed * speedMult;
-            if (this.dy > 0 && this.jumpCount < 2) {
-                 this.dy = JUMP_FORCE;
+            if (this.dy > 0 && this.jumpCount < this.maxJumps) {
+                 this.dy = JUMP_FORCE * this.jumpPowerMult;
                  this.jumpCount++;
             }
         } else {
