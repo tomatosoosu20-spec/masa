@@ -638,7 +638,7 @@ class Player {
         // Mushroom reduces knockback (higher mass)
         let massMult = 1;
         if (this.mushroomTimer > 0) massMult *= 0.6; // 40% reduction
-        if (this.heldItem && this.heldItem.type === 'vitaminDrink') massMult *= 0.5; // 50% reduction
+        if (this.heldItem && this.heldItem.type === 'vitaminDrink') massMult = 0; // No knockback
 
         const force = ((this.percent / 10) + 5) * knockbackMult * massMult;
         this.dx = direction * force;
