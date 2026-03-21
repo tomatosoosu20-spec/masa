@@ -588,14 +588,14 @@ const stage = [
 let isPaused = true;
 
 const ABILITY_DESCS = {
-    "#ff0055": "RED: Range increases with %",
-    "#0088ff": "BLUE: Speed +30%",
-    "#00ff88": "GREEN: Range +30%",
-    "#ffaa00": "YELLOW: 2x Atk with Items",
-    "#aa00ff": "PURPLE: Combo Bonus (Atk 50%+)",
-    "#00ffff": "CYAN: Speed/Range +15%",
-    "#ff00ff": "PINK: Heal on Hit",
-    "#ffffff": "WHITE: Standard"
+    "#ff0055": "赤: ダメージ%に応じて攻撃範囲拡大",
+    "#0088ff": "青: 移動速度+30%",
+    "#00ff88": "緑: 攻撃範囲+30%",
+    "#ffaa00": "黄: アイテム保持時に攻撃力2倍",
+    "#aa00ff": "紫: コンボボーナス(連続ヒットで攻撃力上昇)",
+    "#00ffff": "水色: 移動速度・攻撃範囲+15%",
+    "#ff00ff": "ピンク: 命中時にダメージ1%回復",
+    "#ffffff": "白: 標準"
 };
 
 function renderCharSelect() {
