@@ -14,7 +14,7 @@
         <header class="game-header">
             <a href="index.html" class="back-link">← Portfolio</a>
             <div class="game-title">SUPER PIXEL SMASH</div>
-            <div id="controls-hint">Controls: WASD + F/G (Attack/Special)</div>
+            <div id="controls-hint">Controls: Arrow Keys + Space/Z (Attack/Spec)</div>
         </header>
 
         <div class="canvas-wrapper">
@@ -36,6 +36,10 @@
                     <h1>SELECT CHARACTERS</h1>
                     <div class="char-grid" id="char-grid">
                         <!-- 8 Slots will be here -->
+                    </div>
+                    <div class="settings-bar">
+                        <label for="stock-select">STOCKS:</label>
+                        <input type="number" id="stock-select" value="3" min="1" max="99">
                     </div>
                     <div class="overlay-actions">
                         <button id="start-battle-btn" class="pixel-btn primary">BATTLE START</button>

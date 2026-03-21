@@ -54,8 +54,8 @@ for (let i = 0; i < 8; i++) {
 }
 
 const CONTROL_SCHEMES = [
+    { up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight', attack: 'Space', special: 'KeyZ' },
     { up: 'KeyW', down: 'KeyS', left: 'KeyA', right: 'KeyD', attack: 'KeyF', special: 'KeyG' },
-    { up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight', attack: 'KeyK', special: 'KeyL' },
     { up: 'KeyI', down: 'KeyK', left: 'KeyJ', right: 'KeyL', attack: 'KeyO', special: 'KeyP' },
     { up: 'Numpad8', down: 'Numpad5', left: 'Numpad4', right: 'Numpad6', attack: 'Numpad7', special: 'Numpad9' }
 ];
@@ -77,7 +77,7 @@ class Player {
         this.dx = 0;
         this.dy = 0;
         this.percent = 0;
-        this.lives = 3;
+        this.lives = parseInt(document.getElementById('stock-select').value) || 3;
         this.grounded = false;
         this.jumpCount = 0;
         this.facing = id % 2 === 0 ? -1 : 1;
@@ -471,7 +471,13 @@ function updateHUD() {
         const livesEl = el.querySelector('.lives');
         const oldPercent = parseInt(percentEl.textContent);
         percentEl.textContent = `${p.percent}%`;
-        livesEl.textContent = "❤".repeat(p.lives);
+        
+        if (p.lives > 5) {
+            livesEl.textContent = `❤ x ${p.lives}`;
+        } else {
+            livesEl.textContent = "❤".repeat(Math.max(0, p.lives));
+        }
+        
         if (p.lives <= 0) {
             el.classList.add('eliminated');
             livesEl.textContent = "KO";
