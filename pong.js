@@ -38,7 +38,7 @@ const ai = {
     score: 0
 };
 
-const WINNING_SCORE = 5;
+const WINNING_SCORE = 3;
 let isGameOver = false;
 let totalPoints = localStorage.getItem('pong_total_points');
 if (totalPoints === null) {
