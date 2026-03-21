@@ -957,10 +957,7 @@ function createExplosion(x, y, color) {
 function checkGameOver() {
     const alive = players.filter(p => p.lives > 0);
     if (alive.length === 0) {
-        isGameOver = true;
-        winnerText.textContent = "DRAW!";
-        winnerText.style.color = "white";
-        gameoverScreen.classList.remove('hidden');
+        finishGame("DRAW!", "white");
         return;
     }
 
@@ -969,23 +966,35 @@ function checkGameOver() {
     if (teamsAlive.size === 1) {
         const team = Array.from(teamsAlive)[0];
         if (team !== 0) {
-            // All belong to the same team
-            isGameOver = true;
             const teamName = team === 1 ? "RED TEAM" : "BLUE TEAM";
             const teamColor = team === 1 ? "#ff0055" : "#0088ff";
-            winnerText.textContent = `${teamName} WINS!`;
-            winnerText.style.color = teamColor;
-            gameoverScreen.classList.remove('hidden');
+            finishGame(`${teamName} WINS!`, teamColor);
             return;
         } else if (alive.length === 1) {
-            // Only one individual player remains (team 0)
-            isGameOver = true;
-            winnerText.textContent = `${alive[0].name} WINS!`;
-            winnerText.style.color = alive[0].color;
-            gameoverScreen.classList.remove('hidden');
+            finishGame(`${alive[0].name} WINS!`, alive[0].color);
             return;
         }
     }
+}
+
+function finishGame(text, color) {
+    if (isGameOver) return;
+    isGameOver = true;
+    
+    // Show FINISH! first
+    introText.textContent = "FINISH!";
+    introText.classList.add('finish');
+    introOverlay.classList.remove('hidden');
+    
+    setTimeout(() => {
+        introOverlay.classList.add('hidden');
+        introText.classList.remove('finish');
+        
+        // Then show results
+        winnerText.textContent = text;
+        winnerText.style.color = color;
+        gameoverScreen.classList.remove('hidden');
+    }, 1500);
 }
 
 startBtn.addEventListener('click', () => {
