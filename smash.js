@@ -313,7 +313,7 @@ class Player {
         
         if (this.color === '#0088ff') this.speedMult = 1.3; // Blue
         if (this.color === '#00ff88') { // Green
-            this.maxJumps = 4;
+            this.maxJumps = 7;
             this.jumpPowerMult = 0.5;
         }
         if (this.color === '#00ffff') { this.speedMult = 1.15; this.rangeMult = 1.15; } // Cyan
