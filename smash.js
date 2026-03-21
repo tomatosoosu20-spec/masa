@@ -59,6 +59,77 @@ const CONTROL_SCHEMES = [
     { up: 'KeyI', down: 'KeyK', left: 'KeyJ', right: 'KeyL', attack: 'KeyO', special: 'KeyP' },
     { up: 'Numpad8', down: 'Numpad5', left: 'Numpad4', right: 'Numpad6', attack: 'Numpad7', special: 'Numpad9' }
 ];
+let items = [];
+let projectiles = [];
+
+class Item {
+    constructor(x, y, type) {
+        this.x = x;
+        this.y = y;
+        this.width = 24;
+        this.height = 24;
+        this.type = type;
+        this.dy = 0;
+        this.uses = type === 'gun' ? 6 : 1;
+    }
+    update() {
+        this.dy += GRAVITY * 0.5;
+        this.y += this.dy;
+        stage.forEach(p => {
+            if (this.dy > 0 && this.x < p.x + p.width && this.x + this.width > p.x && 
+                this.y + this.height >= p.y && this.y + this.height - this.dy <= p.y + 10) {
+                this.y = p.y - this.height;
+                this.dy = 0;
+            }
+        });
+        if (this.y > HEIGHT + 100) {
+            const idx = items.indexOf(this);
+            if (idx > -1) items.splice(idx, 1);
+        }
+    }
+    render() { this.renderAt(this.x, this.y); }
+    renderAt(x, y) {
+        ctx.font = "24px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        let icon = "🍄";
+        if (this.type === 'gun') icon = "🔫";
+        if (this.type === 'flag') icon = "🚩";
+        ctx.fillText(icon, x + this.width/2, y + this.height/2);
+    }
+}
+
+class Projectile {
+    constructor(x, y, dir, owner) {
+        this.x = x;
+        this.y = y;
+        this.dx = dir * 12;
+        this.width = 12;
+        this.height = 4;
+        this.owner = owner;
+        this.life = 60;
+    }
+    update() {
+        this.x += this.dx;
+        this.life--;
+        players.forEach(p => {
+            if (p !== this.owner && p.lives > 0 && !p.invincible) {
+                if (this.x < p.x + p.width && this.x + this.width > p.x &&
+                    this.y < p.y + p.height && this.y + this.height > p.y) {
+                    p.takeHit(Math.sign(this.dx), p.percent, 8, 1);
+                    this.life = 0;
+                }
+            }
+        });
+    }
+    draw() {
+        ctx.fillStyle = "#fff";
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = "cyan";
+        ctx.fillRect(this.x, this.y, this.width, this.height);
+        ctx.shadowBlur = 0;
+    }
+}
 
 // Keyboard State
 const keys = {};
@@ -96,6 +167,14 @@ class Player {
         this.attackPressed = false;
         this.dropTimer = 0;
         
+        // Item state
+        this.heldItem = null;
+        this.mushroomTimer = 0;
+        this.sizeMult = 1;
+        this.flagTimer = 0;
+        this.invincible = false;
+        this.invincibleTimer = 0;
+        
         // Control scheme index
         const playersBefore = players.filter(p => p.type === 'player').length;
         this.controls = CONTROL_SCHEMES[playersBefore % CONTROL_SCHEMES.length];
@@ -104,13 +183,10 @@ class Player {
     update() {
         if (this.lives <= 0) return;
 
-        if (Math.abs(this.dx) > 8 || Math.abs(this.dy) > 8) {
-            this.trails.push({ x: this.x, y: this.y, life: 10 });
+        if (this.invincibleTimer > 0) {
+            this.invincibleTimer--;
+            if (this.invincibleTimer === 0) this.invincible = false;
         }
-        this.trails.forEach((t, i) => {
-            t.life--;
-            if (t.life <= 0) this.trails.splice(i, 1);
-        });
 
         if (this.hitstun > 0) {
             this.hitstun--;
@@ -131,6 +207,33 @@ class Player {
         this.x += this.dx;
         this.y += this.dy;
 
+        // Apply item effects
+        if (this.mushroomTimer > 0) {
+            this.mushroomTimer--;
+            this.sizeMult = 2;
+            if (this.mushroomTimer === 0) {
+                this.sizeMult = 1;
+                this.width = 24; // Reset to original size
+                this.height = 32; // Reset to original size
+            } else {
+                this.width = 24 * this.sizeMult;
+                this.height = 32 * this.sizeMult;
+            }
+        }
+
+        if (this.heldItem && this.heldItem.type === 'flag' && keys[this.controls.special]) {
+            this.flagTimer++;
+            if (this.flagTimer >= 300) { // 5 seconds
+                this.lives++;
+                this.heldItem = null;
+                this.flagTimer = 0;
+                createParticles(this.x + this.width/2, this.y + this.height/2, '#00ff00', 20);
+            }
+        } else {
+            this.flagTimer = 0;
+        }
+
+        this.updateTrails();
         this.checkCollisions();
         this.checkBoundaries();
 
@@ -140,6 +243,18 @@ class Player {
         }
         if (this.attackCooldown > 0) this.attackCooldown--;
         if (this.dropTimer > 0) this.dropTimer--;
+        
+        this.checkItemPickup();
+    }
+
+    updateTrails() {
+        if (Math.abs(this.dx) > 8 || Math.abs(this.dy) > 8) {
+            this.trails.push({ x: this.x, y: this.y, life: 10 });
+        }
+        this.trails.forEach((t, i) => {
+            t.life--;
+            if (t.life <= 0) this.trails.splice(i, 1);
+        });
     }
 
     handleInput() {
@@ -169,7 +284,7 @@ class Player {
             this.dropTimer = 10;
         }
 
-        if ((keys[this.controls.attack] || keys[this.controls.special]) && !this.attackPressed && this.attackCooldown <= 0) {
+        if ((keys[this.controls.attack] || (keys[this.controls.special] && this.heldItem && this.heldItem.type !== 'flag')) && !this.attackPressed && this.attackCooldown <= 0) {
             this.performAttack();
             this.attackPressed = true;
         }
@@ -255,7 +370,35 @@ class Player {
         this.target = closest;
     }
 
+    checkItemPickup() {
+        if (this.heldItem) return;
+        items.forEach((item, index) => {
+            if (this.x < item.x + item.width && this.x + this.width > item.x &&
+                this.y < item.y + item.height && this.y + this.height > item.y) {
+                
+                if (item.type === 'mushroom') {
+                    this.mushroomTimer = 900; // 15 seconds
+                    items.splice(index, 1);
+                    createParticles(this.x + this.width/2, this.y + this.height/2, '#ff0000', 15);
+                } else {
+                    this.heldItem = item;
+                    items.splice(index, 1);
+                }
+            }
+        });
+    }
+
     performAttack() {
+        if (this.heldItem && this.heldItem.type === 'gun') {
+            const bulletX = this.x + (this.facing > 0 ? this.width : -10);
+            projectiles.push(new Projectile(bulletX, this.y + this.height/2, this.facing, this));
+            this.attackCooldown = 20;
+            // Gun uses
+            this.heldItem.uses = (this.heldItem.uses || 5) - 1;
+            if (this.heldItem.uses <= 0) this.heldItem = null;
+            return;
+        }
+
         this.isAttacking = true;
         this.attackTimer = 12;
         this.attackCooldown = 35 + Math.random() * 25;
@@ -267,9 +410,17 @@ class Player {
             height: this.height + 20
         };
 
+        // Damage calculation with Mushroom
+        let damage = 7 + Math.floor(Math.random() * 6);
+        let knockbackMult = 1;
+        if (this.mushroomTimer > 0) {
+            damage *= 1.5;
+            knockbackMult = 1.2;
+        }
+
         players.forEach(p => {
-            if (p !== this && p.lives > 0 && this.checkHit(hitBox, p)) {
-                p.takeHit(this.facing, this.percent);
+            if (p !== this && p.lives > 0 && !p.invincible && this.checkHit(hitBox, p)) {
+                p.takeHit(this.facing, this.percent, damage, knockbackMult);
             }
         });
     }
@@ -281,14 +432,16 @@ class Player {
                box.y + box.height > target.y;
     }
 
-    takeHit(direction, attackerPercent) {
-        this.percent += 7 + Math.floor(Math.random() * 6);
+    takeHit(direction, attackerPercent, baseDamage, knockbackMult) {
+        this.percent += baseDamage;
         this.hitstun = 18;
-        const force = (this.percent / 10) + 5;
+        const force = ((this.percent / 10) + 5) * knockbackMult;
         this.dx = direction * force;
         this.dy = -force * 0.5;
         createParticles(this.x + this.width/2, this.y + this.height/2, this.color);
         if (this.percent > 50) screenShakeTimer = 10;
+        this.invincible = true;
+        this.invincibleTimer = 30; // 0.5 seconds of invincibility
     }
 
     checkCollisions() {
@@ -332,16 +485,49 @@ class Player {
         this.percent = 0;
         this.hitstun = 0;
         this.isAttacking = false;
+        this.invincible = true;
+        this.invincibleTimer = 120; // 2 seconds of invincibility after respawn
+        this.heldItem = null;
+        this.mushroomTimer = 0;
+        this.sizeMult = 1;
+        this.width = 24;
+        this.height = 32;
     }
 
     draw() {
         if (this.lives <= 0) return;
+
+        ctx.save();
+        
+        // Draw Flag charging circle
+        if (this.heldItem && this.heldItem.type === 'flag' && this.flagTimer > 0) {
+            ctx.beginPath();
+            ctx.arc(this.x + this.width/2, this.y - 20, 15, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(this.x + this.width/2, this.y - 20, 15, -Math.PI/2, -Math.PI/2 + (this.flagTimer/300) * Math.PI * 2);
+            ctx.strokeStyle = '#00ff00';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+        }
+
+        if (this.invincible && Math.floor(Date.now() / 100) % 2 === 0) ctx.globalAlpha = 0.5;
+
         this.trails.forEach(t => {
             ctx.fillStyle = `rgba(${parseInt(this.color.slice(1,3),16)}, ${parseInt(this.color.slice(3,5),16)}, ${parseInt(this.color.slice(5,7),16)}, ${t.life/10})`;
             ctx.fillRect(t.x, t.y, this.width, this.height);
         });
         ctx.fillStyle = this.color;
         ctx.fillRect(this.x, this.y, this.width, this.height);
+        
+        // Draw held item
+        if (this.heldItem) {
+            const ix = this.x + (this.facing > 0 ? this.width - 5 : -10);
+            const iy = this.y + 10;
+            this.heldItem.renderAt(ix, iy);
+        }
+
         if (this.hitstun > 0) {
              ctx.strokeStyle = "white";
              ctx.lineWidth = 2;
@@ -351,10 +537,11 @@ class Player {
         const eyeX = this.facing === 1 ? this.x + 16 : this.x + 4;
         ctx.fillRect(eyeX, this.y + 6, 4, 4);
         if (this.isAttacking) {
-            ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+            ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
             const hitX = this.facing === 1 ? this.x + this.width : this.x - 35;
             ctx.fillRect(hitX, this.y - 10, 35, this.height + 20);
         }
+        ctx.restore();
     }
 }
 
@@ -473,6 +660,20 @@ function loop() {
 
 function update() {
     players.forEach(p => p.update());
+    
+    // Spawn items
+    if (frameCount % 420 === 0 && items.length < 4) {
+        const types = ['mushroom', 'gun', 'flag'];
+        const type = types[Math.floor(Math.random() * types.length)];
+        items.push(new Item(100 + Math.random() * (WIDTH - 200), -50, type));
+    }
+    
+    items.forEach(item => item.update());
+    projectiles.forEach((proj, i) => {
+        proj.update();
+        if (proj.life <= 0) projectiles.splice(i, 1);
+    });
+
     updateHUD();
     if (screenShakeTimer > 0) {
         screenShakeTimer--;
@@ -536,15 +737,19 @@ function draw() {
         ctx.lineTo(p.x + p.width, p.y + p.height);
         ctx.stroke();
     });
+    
+    items.forEach(item => item.render());
+    projectiles.forEach(proj => proj.draw());
     players.forEach(p => p.draw());
+    
     particles.forEach(p => {
         ctx.fillStyle = p.color;
         ctx.fillRect(p.x, p.y, p.size, p.size);
     });
 }
 
-function createParticles(x, y, color) {
-    for (let i = 0; i < 8; i++) {
+function createParticles(x, y, color, count = 8) {
+    for (let i = 0; i < count; i++) {
         particles.push({
             x, y, dx: (Math.random()-0.5)*12, dy: (Math.random()-0.5)*12,
             size: Math.random()*4+1, life: 20, color
