@@ -173,6 +173,16 @@ class Player {
         this.invincible = false;
         this.invincibleTimer = 0;
         
+        // Ability stats
+        this.speedMult = 1.0;
+        this.rangeMult = 1.0;
+        this.comboCount = 0;
+        this.comboTimer = 0;
+        
+        if (this.color === '#0088ff') this.speedMult = 1.3; // Blue
+        if (this.color === '#00ff88') this.rangeMult = 1.3; // Green
+        if (this.color === '#00ffff') { this.speedMult = 1.15; this.rangeMult = 1.15; } // Cyan
+
         // Control scheme index
         const playersBefore = players.filter(p => p.type === 'player').length;
         this.controls = CONTROL_SCHEMES[playersBefore % CONTROL_SCHEMES.length];
@@ -180,6 +190,11 @@ class Player {
 
     update() {
         if (this.lives <= 0) return;
+
+        if (this.comboTimer > 0) {
+            this.comboTimer--;
+            if (this.comboTimer === 0) this.comboCount = 0;
+        }
 
         if (this.invincibleTimer > 0) {
             this.invincibleTimer--;
@@ -246,11 +261,13 @@ class Player {
     handleInput() {
         if (isPaused) return;
 
+        const currentMaxSpeed = MAX_SPEED * this.speedMult;
+
         if (keys[this.controls.left]) {
-            this.dx = -MAX_SPEED;
+            this.dx = -currentMaxSpeed;
             this.facing = -1;
         } else if (keys[this.controls.right]) {
-            this.dx = MAX_SPEED;
+            this.dx = currentMaxSpeed;
             this.facing = 1;
         } else {
             this.dx *= FRICTION;
@@ -298,7 +315,8 @@ class Player {
 
         if (this.y > mainPlatform.y + 50 || this.x < 100 || this.x > 700) {
             const targetX = WIDTH / 2;
-            this.dx = (targetX > this.x ? 1 : -1) * MAX_SPEED * speedMult;
+            const currentMaxSpeed = MAX_SPEED * this.speedMult;
+            this.dx = (targetX > this.x ? 1 : -1) * currentMaxSpeed * speedMult;
             if (this.dy > 0 && this.jumpCount < 2) {
                  this.dy = JUMP_FORCE;
                  this.jumpCount++;
@@ -314,8 +332,9 @@ class Player {
                 const distY = this.target.y - this.y;
                 this.facing = dist > 0 ? 1 : -1;
                 
+                const currentMaxSpeed = MAX_SPEED * this.speedMult;
                 if (Math.abs(dist) > 40) {
-                    this.dx = Math.sign(dist) * MAX_SPEED * speedMult;
+                    this.dx = Math.sign(dist) * currentMaxSpeed * speedMult;
                 } else {
                     this.dx *= FRICTION;
                     if (this.attackCooldown <= 0) {
@@ -389,26 +408,51 @@ class Player {
         this.attackTimer = 12;
         this.attackCooldown = 35 + Math.random() * 25;
 
+        // Base HitBox
+        let hbW = 35 * this.rangeMult;
+        let hbH = (this.height + 20) * this.rangeMult;
+        
+        // Red: range increases with percent
+        if (this.color === '#ff0055') {
+            hbW += this.percent * 0.4;
+            hbH += this.percent * 0.2;
+        }
+
         const hitBox = {
-            x: this.facing === 1 ? this.x + this.width : this.x - 35,
-            y: this.y - 10,
-            width: 35,
-            height: this.height + 20
+            x: this.facing === 1 ? this.x + this.width : this.x - hbW,
+            y: this.y - (hbH - this.height) / 2,
+            width: hbW,
+            height: hbH
         };
 
-        // Damage calculation with Mushroom
+        // Damage calculation
         let damage = 7 + Math.floor(Math.random() * 6);
         let knockbackMult = 1;
+        
+        // Ability bonus
+        if (this.color === '#ffaa00' && this.heldItem) damage *= 2; // Yellow
+        if (this.color === '#aa00ff') damage *= (1 + this.comboCount * 0.5); // Purple
+
         if (this.mushroomTimer > 0) {
             damage *= 1.5;
             knockbackMult = 1.2;
         }
 
+        let hitAny = false;
         players.forEach(p => {
             if (p !== this && p.lives > 0 && !p.invincible && this.checkHit(hitBox, p)) {
                 p.takeHit(this.facing, this.percent, damage, knockbackMult);
+                hitAny = true;
             }
         });
+
+        if (hitAny) {
+            if (this.color === '#ff00ff') this.percent = Math.max(0, this.percent - 1); // Pink heal
+            if (this.color === '#aa00ff') { // Purple combo
+                this.comboCount++;
+                this.comboTimer = 120; // 2 seconds to keep combo
+            }
+        }
     }
 
     checkHit(box, target) {
@@ -426,6 +470,12 @@ class Player {
         this.dy = -force * 0.5;
         createParticles(this.x + this.width/2, this.y + this.height/2, this.color);
         
+        // Purple combo reset on hit
+        if (this.color === '#aa00ff') {
+            this.comboCount = 0;
+            this.comboTimer = 0;
+        }
+
         if (this.percent > 50) screenShakeTimer = 10;
         this.invincible = true;
         this.invincibleTimer = 30; // 0.5 seconds of invincibility
@@ -477,6 +527,8 @@ class Player {
         this.heldItem = null;
         this.mushroomTimer = 0;
         this.sizeMult = 1;
+        this.comboCount = 0;
+        this.comboTimer = 0;
         this.width = 24;
         this.height = 32;
     }
@@ -495,6 +547,13 @@ class Player {
         ctx.fillStyle = this.color;
         ctx.fillRect(this.x, this.y, this.width, this.height);
         
+        // Draw combo UI for Purple
+        if (this.color === '#aa00ff' && this.comboCount > 0) {
+            ctx.fillStyle = "white";
+            ctx.font = "bold 12px Arial";
+            ctx.fillText(`${this.comboCount} COMBO!`, this.x + this.width/2, this.y - 10);
+        }
+
         // Draw held item
         if (this.heldItem) {
             const ix = this.x + (this.facing > 0 ? this.width - 5 : -10);
@@ -528,6 +587,17 @@ const stage = [
 
 let isPaused = true;
 
+const ABILITY_DESCS = {
+    "#ff0055": "RED: Range increases with %",
+    "#0088ff": "BLUE: Speed +30%",
+    "#00ff88": "GREEN: Range +30%",
+    "#ffaa00": "YELLOW: 2x Atk with Items",
+    "#aa00ff": "PURPLE: Combo Bonus (Atk 50%+)",
+    "#00ffff": "CYAN: Speed/Range +15%",
+    "#ff00ff": "PINK: Heal on Hit",
+    "#ffffff": "WHITE: Standard"
+};
+
 function renderCharSelect() {
     charGrid.innerHTML = '';
     charConfigs.forEach(config => {
@@ -536,6 +606,7 @@ function renderCharSelect() {
         slot.innerHTML = `
             <div class="char-preview" style="background: ${config.color}"></div>
             <div class="char-name">SLOT ${config.id}</div>
+            <div class="ability-desc" style="font-size: 10px; margin-bottom: 5px; color: #aaa;">${ABILITY_DESCS[config.color]}</div>
             <div class="toggle-group">
                 <button class="toggle-btn player ${config.type === 'player' ? 'active' : ''}">PLAYER</button>
                 <button class="toggle-btn cpu ${config.type === 'cpu' ? 'active' : ''}">CPU</button>
