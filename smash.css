@@ -303,6 +303,33 @@ canvas {
     border-color: white;
 }
 
+.team-btn:hover {
+    filter: brightness(1.2);
+    transform: translateY(-1px);
+}
+
+.team-btn:active {
+    transform: translateY(0);
+}
+
+.player-stats .p-name {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+}
+
+.team-badge {
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-size: 0.5rem;
+    font-weight: bold;
+    color: white;
+}
+
+.team-badge.red { background: #ff0055; }
+.team-badge.blue { background: #0088ff; }
+
 .settings-bar {
     margin: 20px 0;
     display: flex;

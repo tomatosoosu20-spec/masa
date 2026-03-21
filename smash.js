@@ -485,7 +485,12 @@ class Player {
     takeHit(direction, attackerPercent, baseDamage, knockbackMult) {
         this.percent += baseDamage;
         this.hitstun = 18;
-        const force = ((this.percent / 10) + 5) * knockbackMult;
+        
+        // Mushroom reduces knockback (higher mass)
+        let massMult = 1;
+        if (this.mushroomTimer > 0) massMult = 0.6; // 40% reduction
+
+        const force = ((this.percent / 10) + 5) * knockbackMult * massMult;
         this.dx = direction * force;
         this.dy = -force * 0.5;
         createParticles(this.x + this.width/2, this.y + this.height/2, this.color);
@@ -557,6 +562,16 @@ class Player {
         if (this.lives <= 0) return;
 
         ctx.save();
+        
+        // Team Indicator over head
+        if (this.team !== 0) {
+            ctx.fillStyle = this.team === 1 ? "#ff0055" : "#0088ff";
+            ctx.beginPath();
+            ctx.moveTo(this.x + this.width/2 - 6, this.y - 12);
+            ctx.lineTo(this.x + this.width/2 + 6, this.y - 12);
+            ctx.lineTo(this.x + this.width/2, this.y - 4);
+            ctx.fill();
+        }
         
         if (this.invincible && Math.floor(Date.now() / 100) % 2 === 0) ctx.globalAlpha = 0.5;
 
@@ -677,10 +692,17 @@ function init() {
         const stat = document.createElement('div');
         stat.className = `player-stats p${config.id}`;
         stat.id = `p-stat-${config.id}`;
-        stat.style.borderColor = config.color;
+        
+        // Border color based on team
+        if (config.team === 1) stat.style.borderColor = "#ff0055";
+        else if (config.team === 2) stat.style.borderColor = "#0088ff";
+        else stat.style.borderColor = config.color;
+
         const label = config.type === 'player' ? `P${config.id}` : `CPU ${config.id}`;
+        const teamBadge = config.team === 0 ? '' : `<span class="team-badge ${config.team === 1 ? 'red' : 'blue'}">${config.team === 1 ? 'RED' : 'BLUE'}</span>`;
+        
         stat.innerHTML = `
-            <div class="p-name">${label}</div>
+            <div class="p-name">${teamBadge} ${label}</div>
             <div class="percent">0%</div>
             <div class="lives">❤❤❤</div>
         `;
