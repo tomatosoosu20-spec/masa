@@ -105,7 +105,7 @@ class Item {
         this.height = 24;
         this.type = type;
         this.dy = 0;
-        this.uses = type === 'gun' ? 6 : 1;
+        this.uses = (type === 'gun' || type === 'vitaminDrink') ? (type === 'gun' ? 6 : 3) : 1;
     }
     update() {
         this.dy += GRAVITY * 0.5;
@@ -131,6 +131,7 @@ class Item {
         if (this.type === 'gun') icon = "🔫";
         if (this.type === 'bomb') icon = "💣";
         if (this.type === 'energyDrink') icon = "🥤";
+        if (this.type === 'vitaminDrink') icon = "🍶";
         if (this.type === 'legendStar') {
             ctx.fillStyle = "yellow";
             ctx.shadowBlur = 10;
@@ -551,10 +552,17 @@ class Player {
         this.attackTimer = 12;
         this.attackCooldown = 35 + Math.random() * 25;
         if (this.energyDrinkTimer > 0) this.attackCooldown /= 10;
+        
+        let rangeBoost = 1;
+        if (this.heldItem && this.heldItem.type === 'vitaminDrink') {
+            rangeBoost = 2;
+            this.heldItem.uses--;
+            if (this.heldItem.uses <= 0) this.heldItem = null;
+        }
 
         // Base HitBox
-        let hbW = 35 * this.rangeMult;
-        let hbH = (this.height + 20) * this.rangeMult;
+        let hbW = 35 * this.rangeMult * rangeBoost;
+        let hbH = (this.height + 20) * this.rangeMult * rangeBoost;
         
         let damageBoost = 1;
         if (this.heldItem && this.heldItem.type === 'legendStar') {
@@ -629,7 +637,8 @@ class Player {
         
         // Mushroom reduces knockback (higher mass)
         let massMult = 1;
-        if (this.mushroomTimer > 0) massMult = 0.6; // 40% reduction
+        if (this.mushroomTimer > 0) massMult *= 0.6; // 40% reduction
+        if (this.heldItem && this.heldItem.type === 'vitaminDrink') massMult *= 0.5; // 50% reduction
 
         const force = ((this.percent / 10) + 5) * knockbackMult * massMult;
         this.dx = direction * force;
@@ -936,7 +945,7 @@ function update() {
     
     // Spawn items
     if (frameCount % 420 === 0 && items.length < 4) {
-        const types = ['mushroom', 'gun', 'bomb', 'legendStar', 'energyDrink'];
+        const types = ['mushroom', 'gun', 'bomb', 'legendStar', 'energyDrink', 'vitaminDrink'];
         const type = types[Math.floor(Math.random() * types.length)];
         items.push(new Item(100 + Math.random() * (WIDTH - 200), -50, type));
     }
