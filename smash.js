@@ -40,6 +40,7 @@ const startBattleBtn = document.getElementById('start-battle-btn');
 const introOverlay = document.getElementById('intro-overlay');
 const introText = document.getElementById('intro-text');
 const canvasWrapper = document.querySelector('.canvas-wrapper');
+const stageSelect = document.getElementById('stage-select');
 
 let screenShakeTimer = 0;
 
@@ -707,12 +708,32 @@ class Player {
     }
 }
 
-const stage = [
-    { x: 180, y: 340, width: 440, height: 40 },
-    { x: 220, y: 240, width: 120, height: 15 },
-    { x: 460, y: 240, width: 120, height: 15 },
-    { x: 340, y: 150, width: 120, height: 15 }
+const STAGES = [
+    [ // Battlefield
+        { x: 150, y: 350, width: 500, height: 20 },
+        { x: 200, y: 240, width: 120, height: 10 },
+        { x: 480, y: 240, width: 120, height: 10 },
+        { x: 340, y: 160, width: 120, height: 10 }
+    ],
+    [ // Final Destination
+        { x: 100, y: 380, width: 600, height: 30 }
+    ],
+    [ // Tower
+        { x: 300, y: 410, width: 200, height: 20 },
+        { x: 280, y: 310, width: 240, height: 10 },
+        { x: 300, y: 210, width: 200, height: 10 },
+        { x: 250, y: 110, width: 300, height: 10 }
+    ],
+    [ // Islands
+        { x: 80, y: 360, width: 160, height: 20 },
+        { x: 560, y: 360, width: 160, height: 20 },
+        { x: 320, y: 240, width: 160, height: 20 },
+        { x: 100, y: 120, width: 150, height: 10 },
+        { x: 550, y: 120, width: 150, height: 10 }
+    ]
 ];
+
+let stage = STAGES[0];
 
 let isPaused = true;
 
@@ -772,8 +793,14 @@ function renderCharSelect() {
 
 function init() {
     players = [];
+    items = [];
+    projectiles = [];
     hudEl.innerHTML = '';
     isPaused = true;
+    
+    // Load selected stage
+    const stageIdx = parseInt(stageSelect.value) || 0;
+    stage = STAGES[stageIdx];
     
     charConfigs.forEach(config => {
         if (config.type === 'off') return;
