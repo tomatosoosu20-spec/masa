@@ -375,7 +375,7 @@ class Player {
         let minDist = Infinity;
         let closest = null;
         players.forEach(p => {
-            if (p !== this && p.lives > 0) {
+            if (p !== this && p.lives > 0 && !(this.team !== 0 && p.team === this.team)) {
                 const d = Math.sqrt((p.x-this.x)**2 + (p.y-this.y)**2);
                 if (d < minDist) {
                     minDist = d;
