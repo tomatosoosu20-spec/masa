@@ -178,11 +178,26 @@ class Player {
 
     handleAI() {
         this.aiDecisionTimer--;
+        const difficulty = document.getElementById('difficulty-select').value;
         const mainPlatform = stage[0];
         
+        let speedMult = 0.85;
+        let reactionTime = 15;
+        let attackCooldownBase = 35;
+        
+        if (difficulty === 'easy') {
+            speedMult = 0.55;
+            reactionTime = 35;
+            attackCooldownBase = 60;
+        } else if (difficulty === 'hard') {
+            speedMult = 1.05;
+            reactionTime = 6;
+            attackCooldownBase = 15;
+        }
+
         if (this.y > mainPlatform.y + 50 || this.x < 100 || this.x > 700) {
             const targetX = WIDTH / 2;
-            this.dx = (targetX > this.x ? 1 : -1) * MAX_SPEED * 0.9;
+            this.dx = (targetX > this.x ? 1 : -1) * MAX_SPEED * speedMult;
             if (this.dy > 0 && this.jumpCount < 2) {
                  this.dy = JUMP_FORCE;
                  this.jumpCount++;
@@ -190,7 +205,7 @@ class Player {
         } else {
             if (this.aiDecisionTimer <= 0) {
                 this.findTarget();
-                this.aiDecisionTimer = 15;
+                this.aiDecisionTimer = reactionTime;
             }
 
             if (this.target && this.target.lives > 0) {
@@ -199,17 +214,25 @@ class Player {
                 this.facing = dist > 0 ? 1 : -1;
                 
                 if (Math.abs(dist) > 40) {
-                    this.dx = Math.sign(dist) * MAX_SPEED * 0.85;
+                    this.dx = Math.sign(dist) * MAX_SPEED * speedMult;
                 } else {
                     this.dx *= FRICTION;
-                    if (this.attackCooldown <= 0) this.performAttack();
+                    if (this.attackCooldown <= 0) {
+                        if (difficulty !== 'easy' || Math.random() < 0.4) {
+                            this.performAttack();
+                            this.attackCooldown = attackCooldownBase + Math.random() * 25;
+                        }
+                    }
                 }
 
                 if (distY < -50 && this.grounded) {
                     this.dy = JUMP_FORCE;
                     this.grounded = false;
-                } else if (distY > 50 && this.grounded && Math.random() < 0.2) {
-                    this.dropTimer = 10;
+                } else if (distY > 50 && this.grounded) {
+                    const dropChance = difficulty === 'easy' ? 0.05 : (difficulty === 'hard' ? 0.4 : 0.2);
+                    if (Math.random() < dropChance) {
+                        this.dropTimer = 10;
+                    }
                 }
             } else {
                 this.dx *= FRICTION;

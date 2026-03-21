@@ -276,13 +276,27 @@ canvas {
     color: white;
 }
 
-.settings-bar input {
+.settings-bar input, .settings-bar select {
     background: rgba(255, 255, 255, 0.1);
     border: 2px solid rgba(255, 255, 255, 0.2);
     color: white;
     padding: 5px 10px;
     border-radius: 4px;
-    width: 60px;
     font-size: 1.1rem;
     text-align: center;
+    font-family: inherit;
+}
+
+.settings-bar input {
+    width: 60px;
+}
+
+.settings-bar select {
+    cursor: pointer;
+    outline: none;
+}
+
+.settings-bar select option {
+    background: #222;
+    color: white;
 }
