@@ -362,7 +362,7 @@ function update() {
 
     // Enemies
     const isBossArena = elapsed >= 300 && finalBossSpawned;
-    const isDensitySpike = elapsed >= 240;
+    const isDensitySpike = elapsed >= 240 && elapsed < 270;
     const spawnMultiplier = (isHordeActive || isDensitySpike) ? 2 : 1;
     const spawnInterval = Math.max(5, Math.floor((60 - level * 2) / spawnMultiplier));
     if (!isBossArena && frameCount % spawnInterval === 0) {
@@ -384,7 +384,8 @@ function update() {
         if (e.isFinalBoss) {
             updateFinalBossAI(e);
         } else {
-            let speedMult = isHordeActive ? 1.5 : 1;
+            let speedMult = 1;
+            if (isHordeActive) speedMult = 1.5;
 
             // Apply slow debuff if active
             if (e.slowTimer > 0) {
