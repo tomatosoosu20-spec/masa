@@ -107,6 +107,8 @@ class Projectile {
         this.height = 4;
         this.owner = owner;
         this.life = 60;
+        this.damage = 8;
+        if (owner.color === '#ffaa00') this.damage *= 2; // Yellow bonus for projectiles
     }
     update() {
         this.x += this.dx;
@@ -115,8 +117,9 @@ class Projectile {
             if (p !== this.owner && p.lives > 0 && !p.invincible) {
                 if (this.x < p.x + p.width && this.x + this.width > p.x &&
                     this.y < p.y + p.height && this.y + this.height > p.y) {
-                    p.takeHit(Math.sign(this.dx), p.percent, 8, 1);
+                    p.takeHit(Math.sign(this.dx), p.percent, this.damage, 1);
                     this.life = 0;
+                    this.owner.onHitSuccess(); // Trigger hit effects like Pink's heal
                 }
             }
         });
@@ -430,7 +433,7 @@ class Player {
         let knockbackMult = 1;
         
         // Ability bonus
-        if (this.color === '#ffaa00' && this.heldItem) damage *= 2; // Yellow
+        if (this.color === '#ffaa00' && (this.heldItem || this.mushroomTimer > 0)) damage *= 2; // Yellow
         if (this.color === '#aa00ff') damage *= (1 + this.comboCount * 0.5); // Purple
 
         if (this.mushroomTimer > 0) {
@@ -447,11 +450,15 @@ class Player {
         });
 
         if (hitAny) {
-            if (this.color === '#ff00ff') this.percent = Math.max(0, this.percent - 1); // Pink heal
-            if (this.color === '#aa00ff') { // Purple combo
-                this.comboCount++;
-                this.comboTimer = 120; // 2 seconds to keep combo
-            }
+            this.onHitSuccess();
+        }
+    }
+
+    onHitSuccess() {
+        if (this.color === '#ff00ff') this.percent = Math.max(0, this.percent - 1); // Pink heal
+        if (this.color === '#aa00ff') { // Purple combo
+            this.comboCount++;
+            this.comboTimer = 120; // 2 seconds to keep combo
         }
     }
 
