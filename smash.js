@@ -337,7 +337,7 @@ class Player {
                     this.dx = Math.sign(dist) * currentMaxSpeed * speedMult;
                 } else {
                     this.dx *= FRICTION;
-                    if (this.attackCooldown <= 0) {
+                    if (difficulty !== 'none' && this.attackCooldown <= 0) {
                         if (difficulty !== 'easy' || Math.random() < 0.4) {
                             this.performAttack();
                             this.attackCooldown = attackCooldownBase + Math.random() * 25;
