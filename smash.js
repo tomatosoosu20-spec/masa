@@ -54,10 +54,10 @@ for (let i = 0; i < 8; i++) {
 }
 
 const CONTROL_SCHEMES = [
-    { up: 'KeyW', left: 'KeyA', right: 'KeyD', attack: 'KeyF', special: 'KeyG' },
-    { up: 'ArrowUp', left: 'ArrowLeft', right: 'ArrowRight', attack: 'KeyK', special: 'KeyL' },
-    { up: 'KeyI', left: 'KeyJ', right: 'KeyL', attack: 'KeyO', special: 'KeyP' },
-    { up: 'Numpad8', left: 'Numpad4', right: 'Numpad6', attack: 'Numpad7', special: 'Numpad9' }
+    { up: 'KeyW', down: 'KeyS', left: 'KeyA', right: 'KeyD', attack: 'KeyF', special: 'KeyG' },
+    { up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight', attack: 'KeyK', special: 'KeyL' },
+    { up: 'KeyI', down: 'KeyK', left: 'KeyJ', right: 'KeyL', attack: 'KeyO', special: 'KeyP' },
+    { up: 'Numpad8', down: 'Numpad5', left: 'Numpad4', right: 'Numpad6', attack: 'Numpad7', special: 'Numpad9' }
 ];
 
 // Keyboard State
@@ -94,6 +94,7 @@ class Player {
         this.trails = [];
         this.upPressed = false;
         this.attackPressed = false;
+        this.dropTimer = 0;
         
         // Control scheme index
         const playersBefore = players.filter(p => p.type === 'player').length;
@@ -138,6 +139,7 @@ class Player {
             if (this.attackTimer === 0) this.isAttacking = false;
         }
         if (this.attackCooldown > 0) this.attackCooldown--;
+        if (this.dropTimer > 0) this.dropTimer--;
     }
 
     handleInput() {
@@ -162,6 +164,10 @@ class Player {
             this.upPressed = true;
         }
         if (!keys[this.controls.up]) this.upPressed = false;
+
+        if (keys[this.controls.down]) {
+            this.dropTimer = 10;
+        }
 
         if ((keys[this.controls.attack] || keys[this.controls.special]) && !this.attackPressed && this.attackCooldown <= 0) {
             this.performAttack();
@@ -262,6 +268,8 @@ class Player {
 
     checkCollisions() {
         this.grounded = false;
+        if (this.dropTimer > 0) return;
+        
         stage.forEach(p => {
             if (this.dy > 0 && this.x < p.x + p.width && this.x + this.width > p.x && 
                 this.y + this.height >= p.y && this.y + this.height - this.dy <= p.y + 10) {
