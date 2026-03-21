@@ -21,6 +21,7 @@ const resumeBtn = document.getElementById('resume-btn');
 const pauseScreen = document.getElementById('pause-screen');
 const pauseTimeEl = document.getElementById('pause-time');
 const pauseInventoryEl = document.getElementById('pause-inventory');
+const dashBtn = document.getElementById('dashBtn');
 
 const WIDTH = 600;
 const HEIGHT = 600;
@@ -1164,6 +1165,9 @@ retryBtn.addEventListener('click', () => init(false));
 nextStageBtn.addEventListener('click', () => {
     currentStage++;
     init(true);
+});
+dashBtn.addEventListener('click', () => {
+    window.location.href = 'pixeldash.html';
 });
 reviveBtn.addEventListener('click', revive);
 pauseBtn.addEventListener('click', showPause);
