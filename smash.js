@@ -95,6 +95,18 @@ class Item {
         ctx.textBaseline = "middle";
         let icon = "🍄";
         if (this.type === 'gun') icon = "🔫";
+        if (this.type === 'bomb') icon = "💣";
+        if (this.type === 'legendStar') {
+            ctx.fillStyle = "yellow";
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = "white";
+            ctx.fillRect(x, y, this.width, this.height);
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = "black";
+            ctx.font = "bold 14px Arial";
+            ctx.fillText("★", x + this.width/2, y + this.height/2);
+            return;
+        }
         ctx.fillText(icon, x + this.width/2, y + this.height/2);
     }
 }
@@ -137,6 +149,73 @@ class Projectile {
         ctx.shadowColor = "cyan";
         ctx.fillRect(this.x, this.y, this.width, this.height);
         ctx.shadowBlur = 0;
+    }
+}
+
+class BombProjectile {
+    constructor(x, y, dir, owner) {
+        this.x = x;
+        this.y = y;
+        this.dx = dir * 5;
+        this.dy = -2;
+        this.width = 20;
+        this.height = 20;
+        this.owner = owner;
+        this.life = 180;
+        this.damage = 50;
+        this.color = "#333";
+    }
+    update() {
+        this.dy += GRAVITY * 0.5;
+        this.x += this.dx;
+        this.y += this.dy;
+
+        // Platform collision
+        stage.forEach(p => {
+            if (this.dy > 0 && this.x < p.x + p.width && this.x + this.width > p.x && 
+                this.y + this.height >= p.y && this.y + this.height - this.dy <= p.y + 10) {
+                this.y = p.y - this.height;
+                this.dy = -this.dy * 0.3; // Bounce slightly
+                this.dx *= 0.98; // Friction
+            }
+        });
+
+        this.life--;
+        if (this.life <= 0) this.explode();
+
+        players.forEach(p => {
+            if (p.lives > 0 && !p.invincible) {
+                if (this.x < p.x + p.width && this.x + this.width > p.x &&
+                    this.y < p.y + p.height && this.y + this.height > p.y) {
+                    this.explode();
+                }
+            }
+        });
+    }
+    explode() {
+        this.life = 0;
+        createExplosion(this.x + this.width/2, this.y + this.height/2, "#ff4400");
+        screenShakeTimer = 20;
+        players.forEach(p => {
+            const dist = Math.sqrt((p.x - this.x)**2 + (p.y - this.y)**2);
+            if (dist < 100 && p.lives > 0 && !p.invincible) {
+                const dir = Math.sign(p.x - this.x) || 1;
+                p.takeHit(dir, p.percent, this.damage, 2.5);
+            }
+        });
+    }
+    draw() {
+        ctx.save();
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x + this.width/2, this.y + this.height/2, this.width/2, 0, Math.PI * 2);
+        ctx.fill();
+        // Fuse indicator
+        if (Math.floor(Date.now() / 200) % 2 === 0) {
+            ctx.fillStyle = "yellow";
+            ctx.fillRect(this.x + this.width/2 - 2, this.y - 4, 4, 4);
+        }
+        ctx.restore();
     }
 }
 
@@ -409,9 +488,16 @@ class Player {
             const bulletX = this.x + (this.facing > 0 ? this.width : -10);
             projectiles.push(new Projectile(bulletX, this.y + this.height/2, this.facing, this));
             this.attackCooldown = 20;
-            // Gun uses
             this.heldItem.uses = (this.heldItem.uses || 5) - 1;
             if (this.heldItem.uses <= 0) this.heldItem = null;
+            return;
+        }
+        
+        if (this.heldItem && this.heldItem.type === 'bomb') {
+            const bombX = this.x + (this.facing > 0 ? this.width : -20);
+            projectiles.push(new BombProjectile(bombX, this.y + this.height/2, this.facing, this));
+            this.heldItem = null;
+            this.attackCooldown = 40;
             return;
         }
 
@@ -422,6 +508,15 @@ class Player {
         // Base HitBox
         let hbW = 35 * this.rangeMult;
         let hbH = (this.height + 20) * this.rangeMult;
+        
+        let damageBoost = 1;
+        if (this.heldItem && this.heldItem.type === 'legendStar') {
+            hbW *= 5;
+            hbH *= 5;
+            damageBoost = 5;
+            this.heldItem = null; // Consume star
+            createParticles(this.x + this.width/2, this.y + this.height/2, "yellow", 20);
+        }
         
         if (this.mushroomTimer > 0) {
             hbW *= 2;
@@ -442,8 +537,9 @@ class Player {
         };
 
         // Damage calculation
-        let damage = 7 + Math.floor(Math.random() * 6);
+        let damage = (7 + Math.floor(Math.random() * 6)) * damageBoost;
         let knockbackMult = 1;
+        if (damageBoost > 1) knockbackMult = 3;
         
         // Ability bonus
         if (this.color === '#ffaa00' && (this.heldItem || this.mushroomTimer > 0)) damage *= 2; // Yellow
@@ -757,7 +853,7 @@ function update() {
     
     // Spawn items
     if (frameCount % 420 === 0 && items.length < 4) {
-        const types = ['mushroom', 'gun'];
+        const types = ['mushroom', 'gun', 'bomb', 'legendStar'];
         const type = types[Math.floor(Math.random() * types.length)];
         items.push(new Item(100 + Math.random() * (WIDTH - 200), -50, type));
     }
