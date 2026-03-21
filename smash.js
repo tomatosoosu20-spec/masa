@@ -172,6 +172,7 @@ class Player {
         this.mushroomTimer = 0;
         this.sizeMult = 1;
         this.flagTimer = 0;
+        this.flagHits = 0;
         this.invincible = false;
         this.invincibleTimer = 0;
         
@@ -439,6 +440,18 @@ class Player {
         this.dx = direction * force;
         this.dy = -force * 0.5;
         createParticles(this.x + this.width/2, this.y + this.height/2, this.color);
+        
+        // Flag logic: Reset timer and consume durability
+        if (this.heldItem && this.heldItem.type === 'flag') {
+            this.flagTimer = 0;
+            this.flagHits++;
+            if (this.flagHits >= 3) {
+                this.heldItem = null;
+                this.flagHits = 0;
+                createParticles(this.x + this.width/2, this.y + this.height/2, '#ff0000', 10);
+            }
+        }
+
         if (this.percent > 50) screenShakeTimer = 10;
         this.invincible = true;
         this.invincibleTimer = 30; // 0.5 seconds of invincibility
@@ -490,6 +503,7 @@ class Player {
         this.heldItem = null;
         this.mushroomTimer = 0;
         this.sizeMult = 1;
+        this.flagHits = 0;
         this.width = 24;
         this.height = 32;
     }
