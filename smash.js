@@ -32,7 +32,7 @@ const COLORS = [
     "#aa00ff", "#00ffff", "#ff00ff", "#ffffff"
 ];
 
-const CPU_NAMES = ["STRIKER", "GHOST", "BLADE", "CRINGE", "ALPHA", "OMEGA", "NEON", "PRIME"];
+const CPU_NAMES = ["ストライカー", "ゴースト", "ブレード", "クリンジ", "アルファ", "オメガ", "ネオン", "プライム"];
 
 const charSelectScreen = document.getElementById('char-select-screen');
 const charGrid = document.getElementById('char-grid');
@@ -755,17 +755,17 @@ function renderCharSelect() {
         slot.className = `char-slot ${config.type !== 'off' ? 'active' : ''}`;
         slot.innerHTML = `
             <div class="char-preview" style="background: ${config.color}"></div>
-            <div class="char-name">SLOT ${config.id}</div>
+            <div class="char-name">スロット ${config.id}</div>
             <div class="ability-desc" style="font-size: 10px; margin-bottom: 5px; color: #aaa;">${ABILITY_DESCS[config.color]}</div>
             <div class="toggle-group">
-                <button class="toggle-btn player ${config.type === 'player' ? 'active' : ''}">PLAYER</button>
+                <button class="toggle-btn player ${config.type === 'player' ? 'active' : ''}">プレイヤー</button>
                 <button class="toggle-btn cpu ${config.type === 'cpu' ? 'active' : ''}">CPU</button>
-                <button class="toggle-btn off ${config.type === 'off' ? 'active' : ''}">OFF</button>
+                <button class="toggle-btn off ${config.type === 'off' ? 'active' : ''}">不参加</button>
             </div>
             <div class="team-group">
-                <button class="team-btn none ${config.team === 0 ? 'active' : ''}" data-team="0">Individual</button>
-                <button class="team-btn red ${config.team === 1 ? 'active' : ''}" data-team="1">RED</button>
-                <button class="team-btn blue ${config.team === 2 ? 'active' : ''}" data-team="2">BLUE</button>
+                <button class="team-btn none ${config.team === 0 ? 'active' : ''}" data-team="0">個人</button>
+                <button class="team-btn red ${config.team === 1 ? 'active' : ''}" data-team="1">赤</button>
+                <button class="team-btn blue ${config.team === 2 ? 'active' : ''}" data-team="2">青</button>
             </div>
         `;
 
@@ -820,7 +820,7 @@ function init() {
         else stat.style.borderColor = config.color;
 
         const label = config.type === 'player' ? `P${config.id}` : `CPU ${config.id}`;
-        const teamBadge = config.team === 0 ? '' : `<span class="team-badge ${config.team === 1 ? 'red' : 'blue'}">${config.team === 1 ? 'RED' : 'BLUE'}</span>`;
+        const teamBadge = config.team === 0 ? '' : `<span class="team-badge ${config.team === 1 ? 'red' : 'blue'}">${config.team === 1 ? '赤' : '青'}</span>`;
         
         stat.innerHTML = `
             <div class="p-name">${teamBadge} ${label}</div>
@@ -984,7 +984,7 @@ function createExplosion(x, y, color) {
 function checkGameOver() {
     const alive = players.filter(p => p.lives > 0);
     if (alive.length === 0) {
-        finishGame("DRAW!", "white");
+        finishGame("引き分け！", "white");
         return;
     }
 
@@ -993,12 +993,12 @@ function checkGameOver() {
     if (teamsAlive.size === 1) {
         const team = Array.from(teamsAlive)[0];
         if (team !== 0) {
-            const teamName = team === 1 ? "RED TEAM" : "BLUE TEAM";
+            const teamName = team === 1 ? "赤チーム" : "青チーム";
             const teamColor = team === 1 ? "#ff0055" : "#0088ff";
-            finishGame(`${teamName} WINS!`, teamColor);
+            finishGame(`${teamName}の勝利！`, teamColor);
             return;
         } else if (alive.length === 1) {
-            finishGame(`${alive[0].name} WINS!`, alive[0].color);
+            finishGame(`${alive[0].name}の勝利！`, alive[0].color);
             return;
         }
     }
@@ -1009,7 +1009,7 @@ function finishGame(text, color) {
     isGameOver = true;
     
     // Show FINISH! first
-    introText.textContent = "FINISH!";
+    introText.textContent = "決着！";
     introText.classList.add('finish');
     introOverlay.classList.remove('hidden');
     
@@ -1033,7 +1033,7 @@ startBtn.addEventListener('click', () => {
 startBattleBtn.addEventListener('click', () => {
     const active = charConfigs.filter(c => c.type !== 'off');
     if (active.length < 2) {
-        alert("Select at least 2 characters to battle!");
+        alert("2人以上のキャラクターを選択してください！");
         return;
     }
     init();

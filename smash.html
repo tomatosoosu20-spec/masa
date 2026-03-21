@@ -12,9 +12,9 @@
 <body>
     <div class="game-container">
         <header class="game-header">
-            <a href="index.html" class="back-link">← Portfolio</a>
-            <div class="game-title">SUPER PIXEL SMASH</div>
-            <div id="controls-hint">Controls: Arrow Keys + Space/Z (Attack/Spec)</div>
+            <a href="index.html" class="back-link">← ポートフォリオ</a>
+            <div class="game-title">スーパーピクセルスマッシュ</div>
+            <div id="controls-hint">操作: 矢印キー + Space/Z (攻撃/特殊)</div>
         </header>
 
         <div class="canvas-wrapper">
@@ -33,12 +33,12 @@
             <!-- Character Select Screen -->
             <div id="char-select-screen" class="overlay">
                 <div class="overlay-content select-content">
-                    <h1>SELECT CHARACTERS</h1>
+                    <h1>キャラクター選択</h1>
                     <div class="char-grid" id="char-grid">
                         <!-- 8 Slots will be here -->
                     </div>
                     <div class="settings-bar">
-                        <label for="stock-select">STOCKS:</label>
+                        <label for="stock-select">残機:</label>
                         <input type="number" id="stock-select" value="3" min="1" max="99">
                         <label for="difficulty-select" style="margin-left: 20px;">CPU:</label>
                         <select id="difficulty-select">
@@ -47,33 +47,33 @@
                             <option value="normal" selected>結構強い</option>
                             <option value="hard">強い</option>
                         </select>
-                        <label for="stage-select" style="margin-left: 20px;">STAGE:</label>
+                        <label for="stage-select" style="margin-left: 20px;">ステージ:</label>
                         <select id="stage-select">
-                            <option value="0">BATTLEFIELD</option>
-                            <option value="1">FINAL DESTINATION</option>
-                            <option value="2">TOWER</option>
-                            <option value="3">ISLANDS</option>
+                            <option value="0">戦場</option>
+                            <option value="1">終点</option>
+                            <option value="2">タワー</option>
+                            <option value="3">浮島</option>
                         </select>
                     </div>
                     <div class="overlay-actions">
-                        <button id="start-battle-btn" class="pixel-btn primary">BATTLE START</button>
+                        <button id="start-battle-btn" class="pixel-btn primary">対戦開始</button>
                     </div>
                 </div>
             </div>
 
             <div id="start-screen" class="overlay">
                 <div class="overlay-content">
-                    <h1>SUPER PIXEL SMASH</h1>
-                    <p>Knock them off the stage!</p>
-                    <button id="startBtn" class="pixel-btn">FIGHT!</button>
+                    <h1>スーパーピクセルスマッシュ</h1>
+                    <p>相手をステージから叩き落とせ！</p>
+                    <button id="startBtn" class="pixel-btn">対戦開始！</button>
                 </div>
             </div>
 
             <div id="gameover-screen" class="overlay hidden">
                 <div class="overlay-content">
                     <h1 id="winner-text">P1 WINS!</h1>
-                    <button id="retryBtn" class="pixel-btn">REMATCH</button>
-                    <a href="index.html" class="pixel-btn outline">EXIT</a>
+                    <button id="retryBtn" class="pixel-btn">再戦</button>
+                    <a href="index.html" class="pixel-btn outline">終了</a>
                 </div>
             </div>
         </div>
