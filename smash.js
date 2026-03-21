@@ -352,6 +352,14 @@ function renderCharSelect() {
         slot.querySelectorAll('.toggle-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const type = btn.classList.contains('player') ? 'player' : (btn.classList.contains('cpu') ? 'cpu' : 'off');
+                
+                // Enforce single player: if selecting player, switch existing player to cpu
+                if (type === 'player') {
+                    charConfigs.forEach(c => {
+                        if (c.type === 'player') c.type = 'cpu';
+                    });
+                }
+                
                 config.type = type;
                 renderCharSelect();
             });
