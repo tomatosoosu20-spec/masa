@@ -49,7 +49,8 @@ for (let i = 0; i < 8; i++) {
     charConfigs.push({
         id: i + 1,
         type: i === 0 ? 'player' : (i < 4 ? 'cpu' : 'off'), // Default: 1 player, 3 CPUs
-        color: COLORS[i]
+        color: COLORS[i],
+        team: 0 // 0: None, 1: Red, 2: Blue
     });
 }
 
@@ -117,6 +118,12 @@ class Projectile {
             if (p !== this.owner && p.lives > 0 && !p.invincible) {
                 if (this.x < p.x + p.width && this.x + this.width > p.x &&
                     this.y < p.y + p.height && this.y + this.height > p.y) {
+                    
+                    // Friendly Fire Check
+                    if (p.team !== 0 && p.team === this.owner.team) {
+                        return; // Skip teammates
+                    }
+
                     p.takeHit(Math.sign(this.dx), p.percent, this.damage, 1);
                     this.life = 0;
                     this.owner.onHitSuccess(); // Trigger hit effects like Pink's heal
@@ -139,8 +146,9 @@ window.addEventListener('keydown', e => keys[e.code] = true);
 window.addEventListener('keyup', e => keys[e.code] = false);
 
 class Player {
-    constructor(id, x, y, color, type) {
+    constructor(id, x, y, color, type, team = 0) {
         this.id = id;
+        this.team = team;
         this.name = type === 'player' ? `P${id}` : CPU_NAMES[id - 1];
         this.x = x;
         this.y = y;
@@ -448,6 +456,11 @@ class Player {
 
         players.forEach(p => {
             if (p !== this && p.lives > 0 && !p.invincible && this.checkHit(hitBox, p)) {
+                // Friendly Fire Check
+                if (p.team !== 0 && p.team === this.team) {
+                    return; // Skip teammates
+                }
+                
                 p.takeHit(this.facing, this.percent, damage, knockbackMult);
                 this.onHitSuccess();
             }
@@ -619,20 +632,27 @@ function renderCharSelect() {
                 <button class="toggle-btn cpu ${config.type === 'cpu' ? 'active' : ''}">CPU</button>
                 <button class="toggle-btn off ${config.type === 'off' ? 'active' : ''}">OFF</button>
             </div>
+            <div class="team-group">
+                <button class="team-btn none ${config.team === 0 ? 'active' : ''}" data-team="0">Individual</button>
+                <button class="team-btn red ${config.team === 1 ? 'active' : ''}" data-team="1">RED</button>
+                <button class="team-btn blue ${config.team === 2 ? 'active' : ''}" data-team="2">BLUE</button>
+            </div>
         `;
 
         slot.querySelectorAll('.toggle-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const type = btn.classList.contains('player') ? 'player' : (btn.classList.contains('cpu') ? 'cpu' : 'off');
-                
-                // Enforce single player: if selecting player, switch existing player to cpu
                 if (type === 'player') {
-                    charConfigs.forEach(c => {
-                        if (c.type === 'player') c.type = 'cpu';
-                    });
+                    charConfigs.forEach(c => { if (c.type === 'player') c.type = 'cpu'; });
                 }
-                
                 config.type = type;
+                renderCharSelect();
+            });
+        });
+
+        slot.querySelectorAll('.team-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                config.team = parseInt(btn.dataset.team);
                 renderCharSelect();
             });
         });
@@ -651,7 +671,7 @@ function init() {
         
         const x = 200 + Math.random() * 400;
         const y = 200;
-        const p = new Player(config.id, x, y, config.color, config.type);
+        const p = new Player(config.id, x, y, config.color, config.type, config.team);
         players.push(p);
 
         const stat = document.createElement('div');
@@ -820,16 +840,35 @@ function createExplosion(x, y, color) {
 
 function checkGameOver() {
     const alive = players.filter(p => p.lives > 0);
-    if (alive.length === 1) {
-        isGameOver = true;
-        winnerText.textContent = `${alive[0].name} WINS!`;
-        winnerText.style.color = alive[0].color;
-        gameoverScreen.classList.remove('hidden');
-    } else if (alive.length === 0) {
+    if (alive.length === 0) {
         isGameOver = true;
         winnerText.textContent = "DRAW!";
         winnerText.style.color = "white";
         gameoverScreen.classList.remove('hidden');
+        return;
+    }
+
+    // Check if only one team remains
+    const teamsAlive = new Set(alive.map(p => p.team));
+    if (teamsAlive.size === 1) {
+        const team = Array.from(teamsAlive)[0];
+        if (team !== 0) {
+            // All belong to the same team
+            isGameOver = true;
+            const teamName = team === 1 ? "RED TEAM" : "BLUE TEAM";
+            const teamColor = team === 1 ? "#ff0055" : "#0088ff";
+            winnerText.textContent = `${teamName} WINS!`;
+            winnerText.style.color = teamColor;
+            gameoverScreen.classList.remove('hidden');
+            return;
+        } else if (alive.length === 1) {
+            // Only one individual player remains (team 0)
+            isGameOver = true;
+            winnerText.textContent = `${alive[0].name} WINS!`;
+            winnerText.style.color = alive[0].color;
+            gameoverScreen.classList.remove('hidden');
+            return;
+        }
     }
 }
 
