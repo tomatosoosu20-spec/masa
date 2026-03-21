@@ -130,6 +130,7 @@ class Item {
         let icon = "🍄";
         if (this.type === 'gun') icon = "🔫";
         if (this.type === 'bomb') icon = "💣";
+        if (this.type === 'energyDrink') icon = "🥤";
         if (this.type === 'legendStar') {
             ctx.fillStyle = "yellow";
             ctx.shadowBlur = 10;
@@ -294,8 +295,9 @@ class Player {
         this.heldItem = null;
         this.mushroomTimer = 0;
         this.sizeMult = 1;
-        this.invincible = false;
+        this.dropTimer = 0;
         this.invincibleTimer = 0;
+        this.energyDrinkTimer = 0;
         
         // Ability stats
         this.speedMult = 1.0;
@@ -358,6 +360,10 @@ class Player {
             }
         }
 
+        if (this.energyDrinkTimer > 0) {
+            this.energyDrinkTimer--;
+        }
+
         this.updateTrails();
         this.checkCollisions();
         this.checkBoundaries();
@@ -385,7 +391,8 @@ class Player {
     handleInput() {
         if (isPaused) return;
 
-        const currentMaxSpeed = MAX_SPEED * this.speedMult;
+        let currentMaxSpeed = MAX_SPEED * this.speedMult;
+        if (this.energyDrinkTimer > 0) currentMaxSpeed *= 2;
 
         if (keys[this.controls.left]) {
             this.dx = -currentMaxSpeed;
@@ -439,7 +446,8 @@ class Player {
 
         if (this.y > mainPlatform.y + 50 || this.x < 100 || this.x > 700) {
             const targetX = WIDTH / 2;
-            const currentMaxSpeed = MAX_SPEED * this.speedMult;
+            let currentMaxSpeed = MAX_SPEED * this.speedMult;
+            if (this.energyDrinkTimer > 0) currentMaxSpeed *= 2;
             this.dx = (targetX > this.x ? 1 : -1) * currentMaxSpeed * speedMult;
             if (this.dy > 0 && this.jumpCount < 2) {
                  this.dy = JUMP_FORCE;
@@ -509,6 +517,10 @@ class Player {
                     this.mushroomTimer = 900; // 15 seconds
                     items.splice(index, 1);
                     createParticles(this.x + this.width/2, this.y + this.height/2, '#ff0000', 15);
+                } else if (item.type === 'energyDrink') {
+                    this.energyDrinkTimer = 180; // 3 seconds
+                    items.splice(index, 1);
+                    createParticles(this.x + this.width/2, this.y + this.height/2, '#00ffff', 15);
                 } else {
                     this.heldItem = item;
                     items.splice(index, 1);
@@ -538,6 +550,7 @@ class Player {
         this.isAttacking = true;
         this.attackTimer = 12;
         this.attackCooldown = 35 + Math.random() * 25;
+        if (this.energyDrinkTimer > 0) this.attackCooldown /= 10;
 
         // Base HitBox
         let hbW = 35 * this.rangeMult;
@@ -923,7 +936,7 @@ function update() {
     
     // Spawn items
     if (frameCount % 420 === 0 && items.length < 4) {
-        const types = ['mushroom', 'gun', 'bomb', 'legendStar'];
+        const types = ['mushroom', 'gun', 'bomb', 'legendStar', 'energyDrink'];
         const type = types[Math.floor(Math.random() * types.length)];
         items.push(new Item(100 + Math.random() * (WIDTH - 200), -50, type));
     }
