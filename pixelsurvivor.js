@@ -391,9 +391,15 @@ function update() {
                 e.slowTimer--;
             }
 
+            let moveSpeed = e.speed * speedMult;
+            // Override speed during mass spawn (Horde) to match player's original speed
+            if (isHordeActive && !e.isBoss) {
+                moveSpeed = player.speed * (e.slowTimer > 0 ? 0.5 : 1);
+            }
+
             const angle = Math.atan2(player.y - e.y, player.x - e.x);
-            e.x += Math.cos(angle) * e.speed * speedMult;
-            e.y += Math.sin(angle) * e.speed * speedMult;
+            e.x += Math.cos(angle) * moveSpeed;
+            e.y += Math.sin(angle) * moveSpeed;
         }
 
         // Collision with bullet
