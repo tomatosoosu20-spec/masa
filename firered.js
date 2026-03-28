@@ -4,8 +4,8 @@ const battleCanvas = document.getElementById('battleCanvas');
 const bCtx = battleCanvas.getContext('2d');
 
 const TILE_SIZE = 16;
-const COLS = 15;
-const ROWS = 10;
+const COLS = 30;
+const ROWS = 20;
 
 // GAME STATES
 const STATE_MAP = 0;
@@ -971,16 +971,17 @@ function drawBattle() {
     bCtx.fillRect(0,0, battleCanvas.width, battleCanvas.height);
     
     bCtx.fillStyle = '#A0D080';
-    bCtx.beginPath(); bCtx.ellipse(180, 50, 50, 15, 0, 0, Math.PI*2); bCtx.fill();
-    bCtx.beginPath(); bCtx.ellipse(60, 130, 60, 20, 0, 0, Math.PI*2); bCtx.fill();
+    // Scaled for 480x320 canvas
+    bCtx.beginPath(); bCtx.ellipse(360, 100, 100, 30, 0, 0, Math.PI*2); bCtx.fill();
+    bCtx.beginPath(); bCtx.ellipse(120, 260, 120, 40, 0, 0, Math.PI*2); bCtx.fill();
 
     if(activeEnemy) {
         bCtx.fillStyle = (activeTrainerGym) ? '#444' : '#8B4513';
-        bCtx.beginPath(); bCtx.arc(180, 35, 15, 0, Math.PI*2); bCtx.fill();
+        bCtx.beginPath(); bCtx.arc(360, 70, 30, 0, Math.PI*2); bCtx.fill();
     }
     if(activePokemon && activePokemon.hp > 0) {
         bCtx.fillStyle = (activePokemon.type==='みず')?'blue':(activePokemon.type==='くさ')?'green':'red';
-        bCtx.beginPath(); bCtx.arc(60, 110, 20, 0, Math.PI*2); bCtx.fill();
+        bCtx.beginPath(); bCtx.arc(120, 220, 40, 0, Math.PI*2); bCtx.fill();
     }
 }
 
