@@ -118,8 +118,22 @@ window.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Purchase logic
             e.preventDefault(); // Stop navigation to buy first
+
+            // 0 PT games are instantly acquired without confirmation or reload
+            if (price === 0) {
+                localStorage.setItem(`game_bought_${gameId}`, 'true');
+                btn.classList.remove('locked');
+                const priceTag = btn.querySelector('.price-tag');
+                const btnText = btn.querySelector('.btn-text');
+                if (priceTag) priceTag.textContent = '0 PT (OWNED)';
+                if (btnText) btnText.textContent = 'Play Game';
+                
+                // Immediately navigate to the link
+                window.location.href = btn.getAttribute('href');
+                return;
+            }
+
             if (currentPoints >= price) {
                 if (confirm(`${price} ポイントを使用してこのゲームを購入しますか？`)) {
                     currentPoints -= price;
