@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GBA State Parser</title>
+    <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="pokemon.css">
+</head>
+<body>
+    <div id="game-container">
+        <div id="handheld-frame">
+            <div id="screen-border">
+                <div id="parser-screen">
+                    <div class="glitch-text" style="text-align:center; color:#0f0; margin-bottom:10px;">GBA STATE PARSER OS</div>
+                    
+                    <div id="upload-section">
+                        <label for="file-input" class="upload-btn">STATEファイルをロード</label>
+                        <input type="file" id="file-input" accept=".state">
+                    </div>
+                    
+                    <div id="output-section" class="hidden">
+                        <div id="file-name-display" class="highlight"></div>
+                        <div id="title-display"></div>
+                        <div id="code-display"></div>
+                        
+                        <div style="margin-top:10px; color:#aaa;">--- Hex Dump (First 256 bytes) ---</div>
+                        <pre id="hex-dump"></pre>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="controls">
+                <div id="dpad">
+                    <div class="up"></div>
+                    <div class="right"></div>
+                    <div class="down"></div>
+                    <div class="left"></div>
+                </div>
+                <div id="action-buttons">
+                    <div class="btn-a">A</div>
+                    <div class="btn-b">B</div>
+                </div>
+                <div id="start-select">
+                    <div class="select">SELECT</div>
+                    <div class="start">START</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="pokemon.js"></script>
+</body>
+</html>
