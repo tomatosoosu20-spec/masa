@@ -23,7 +23,7 @@ body {
     padding: 40px;
     box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 10px 30px rgba(0,0,0,0.8);
     position: relative;
-    width: 600px; /* Wider for buttons */
+    width: 600px;
 }
 
 /* Screen Area */
@@ -64,15 +64,37 @@ body {
     display: none !important;
 }
 
-/* Battle UI Layer */
+/* UI Layer */
+#ui-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 20;
+}
+
 #battle-ui {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    pointer-events: none; /* Let canvas handle events */
+    pointer-events: none;
     z-index: 10;
+}
+
+/* Base Menu Box */
+.menu-box {
+    position: absolute;
+    background: #f8f8f8;
+    border: 4px solid #333;
+    border-radius: 6px;
+    color: #333;
+    font-size: 18px;
+    padding: 5px;
+    box-sizing: border-box;
 }
 
 /* Dialogue Box */
@@ -81,7 +103,7 @@ body {
     bottom: 0;
     left: 0;
     width: 100%;
-    height: 80px; /* scaled */
+    height: 80px; 
     background: #f8f8f8;
     border: 4px solid #333;
     border-radius: 6px;
@@ -89,29 +111,28 @@ body {
     font-size: 20px;
     padding: 10px;
     box-sizing: border-box;
-    z-index: 20;
     font-weight: bold;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
+    white-space: pre-wrap;
 }
 
 /* Command Menu */
 #command-menu, #move-menu {
-    position: absolute;
     bottom: 0;
     right: 0;
     width: 50%;
     height: 80px;
-    background: #f8f8f8;
-    border: 4px solid #333;
-    border-radius: 6px;
-    color: #333;
-    font-size: 18px;
-    z-index: 30;
     display: flex;
     flex-wrap: wrap;
-    padding: 5px;
-    box-sizing: border-box;
+}
+
+#field-menu {
+    top: 0;
+    right: 0;
+    width: 120px;
+    display: flex;
+    flex-direction: column;
 }
 
 .menu-item, .move-item {
@@ -121,10 +142,17 @@ body {
     position: relative;
 }
 
-.menu-item.active::before, .move-item.active::before {
+#field-menu .menu-item, #choice-menu .menu-item {
+    width: 100%;
+}
+
+.menu-item.active::before, .move-item.active::before, .list-item.active::before {
     content: '▶';
     position: absolute;
-    left: -5px;
+    left: -8px;
+}
+.list-item.active::before {
+    left: 5px;
 }
 
 #move-details {
@@ -141,18 +169,58 @@ body {
     font-size: 16px;
 }
 
+/* Lists Screen (Bag / Pokemon) */
+.list-screen {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: #e0f8e0;
+    padding: 10px;
+    box-sizing: border-box;
+    color: #333;
+    z-index: 50;
+}
+.list-screen h2 {
+    margin: 0 0 10px 0;
+    font-size: 22px;
+    border-bottom: 2px solid #333;
+}
+.list-screen ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    height: 240px;
+    overflow-y: auto;
+}
+.list-item {
+    padding: 5px 5px 5px 25px;
+    position: relative;
+    font-size: 18px;
+}
+.list-instructions {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    font-size: 14px;
+}
+
+
 /* Transition Overlay */
 #transition-overlay {
     position: absolute;
     top: 0; left: 0;
     width: 100%; height: 100%;
     background: black;
-    z-index: 15;
+    z-index: 100;
     opacity: 0;
 }
 
 .flash-animation {
-    animation: flashAnim 1s ease-in-out forwards;
+    animation: flashAnim 1.2s ease-in-out forwards;
+}
+
+.fade-in-out {
+    animation: fadeAnim 0.6s ease-in-out forwards;
 }
 
 @keyframes flashAnim {
@@ -161,6 +229,12 @@ body {
     40% { opacity: 0; background: white; }
     60% { opacity: 1; background: black; }
     80% { opacity: 1; background: black; }
+    100% { opacity: 0; background: black; }
+}
+
+@keyframes fadeAnim {
+    0% { opacity: 0; background: black; }
+    50% { opacity: 1; background: black; }
     100% { opacity: 0; background: black; }
 }
 
@@ -174,20 +248,21 @@ body {
     color: #333;
     font-size: 18px;
     z-index: 15;
-    width: 200px;
+    width: 220px;
 }
 
 #enemy-hp-bar {
     top: 20px;
-    left: 20px;
+    left: 10px;
 }
 
 #player-hp-bar {
     bottom: 90px;
-    right: 20px;
+    right: 10px;
 }
 
 .name { font-weight: bold; float: left;}
+.gender { float: left; margin-left: 5px; color: #555;}
 .level { float: right; }
 .hp-track {
     clear: both;

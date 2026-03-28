@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FireRed Clone</title>
+    <title>FireRed Clone RPG</title>
     <!-- GBA風のドットフォントを使用 -->
     <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="firered.css">
@@ -21,21 +21,47 @@
                     <div id="battle-ui" class="hidden">
                         <canvas id="battleCanvas" width="240" height="160"></canvas>
                         
+                        <!-- HPバー -->
+                        <div id="enemy-hp-bar" class="status-bar hidden">
+                            <div class="name" id="enemy-name">???</div>
+                            <div class="gender" id="enemy-gender">♂</div>
+                            <div class="level" id="enemy-level">Lv. 5</div>
+                            <div class="hp-track"><div id="enemy-hp-fill" class="hp-fill"></div></div>
+                        </div>
+                        
+                        <div id="player-hp-bar" class="status-bar hidden">
+                            <div class="name" id="player-name">ヒトカゲ</div>
+                            <div class="gender" id="player-gender">♂</div>
+                            <div class="level" id="player-level">Lv. 5</div>
+                            <div class="hp-track"><div id="player-hp-fill" class="hp-fill"></div></div>
+                            <div class="hp-text"><span id="player-hp-current">20</span> / <span id="player-hp-max">20</span></div>
+                        </div>
+                    </div>
+
+                    <!-- メニュー/UIレイヤー -->
+                    <div id="ui-layer" class="hidden">
                         <!-- ダイアログボックス -->
-                        <div id="dialogue-box">
+                        <div id="dialogue-box" class="hidden">
                             <div id="message"></div>
                         </div>
                         
                         <!-- コマンドメニュー -->
-                        <div id="command-menu" class="hidden">
+                        <div id="command-menu" class="hidden menu-box">
                             <div class="menu-item active" id="btn-fight">たたかう</div>
                             <div class="menu-item" id="btn-bag">バッグ</div>
                             <div class="menu-item" id="btn-pokemon">ポケモン</div>
                             <div class="menu-item" id="btn-run">にげる</div>
                         </div>
+
+                        <!-- フィールドメニュー -->
+                        <div id="field-menu" class="hidden menu-box list-menu">
+                            <div class="menu-item active">ポケモン</div>
+                            <div class="menu-item">バッグ</div>
+                            <div class="menu-item">とじる</div>
+                        </div>
                         
                         <!-- 技メニュー -->
-                        <div id="move-menu" class="hidden">
+                        <div id="move-menu" class="hidden menu-box">
                             <div class="move-item active" id="move-1">-</div>
                             <div class="move-item" id="move-2">-</div>
                             <div class="move-item" id="move-3">-</div>
@@ -46,22 +72,28 @@
                             </div>
                         </div>
 
-                         <!-- トランジションエフェクト用のフラッシュや暗転画面 -->
-                         <div id="transition-overlay" class="hidden"></div>
+                        <!-- バッグ / ポケモン画面等 -->
+                        <div id="list-menu" class="hidden list-screen">
+                            <h2 id="list-title">バッグ</h2>
+                            <ul id="list-ul">
+                                <!-- list items injected here -->
+                            </ul>
+                            <div class="list-instructions">Z:けってい X:もどる</div>
+                        </div>
 
-                        <!-- HPバー -->
-                        <div id="enemy-hp-bar" class="status-bar hidden">
-                            <div class="name" id="enemy-name">???</div>
-                            <div class="level" id="enemy-level">Lv. 5</div>
-                            <div class="hp-track"><div id="enemy-hp-fill" class="hp-fill"></div></div>
+                        <!-- Yes/No (はい/いいえ) -->
+                        <div id="choice-menu" class="hidden menu-box" style="bottom: 80px; right: 0; width: 80px; z-index: 60;">
+                            <div class="menu-item active">はい</div>
+                            <div class="menu-item">いいえ</div>
                         </div>
-                        
-                        <div id="player-hp-bar" class="status-bar hidden">
-                            <div class="name" id="player-name">ヒトカゲ</div>
-                            <div class="level" id="player-level">Lv. 5</div>
-                            <div class="hp-track"><div id="player-hp-fill" class="hp-fill"></div></div>
-                            <div class="hp-text"><span id="player-hp-current">20</span> / <span id="player-hp-max">20</span></div>
+
+                        <!-- お金表示 -->
+                        <div id="money-box" class="hidden menu-box" style="top: 10px; left: 10px; width: 120px; z-index: 55;">
+                            <div id="money-text">円: 0</div>
                         </div>
+
+                        <!-- トランジションエフェクト -->
+                        <div id="transition-overlay" class="hidden"></div>
                     </div>
                 </div>
             </div>
