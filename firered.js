@@ -311,14 +311,18 @@ function handleKey(key, isDown) {
 
 // --- OVERWORLD LOGIC ---
 function updateOverworld() {
+    if (currentState !== STATE_MAP) return; 
     if (player.moving) {
         let tx = player.targetX * TILE_SIZE;
         let ty = player.targetY * TILE_SIZE;
         
-        if (player.pixelX < tx) player.pixelX += player.speed;
-        if (player.pixelX > tx) player.pixelX -= player.speed;
-        if (player.pixelY < ty) player.pixelY += player.speed;
-        if (player.pixelY > ty) player.pixelY -= player.speed;
+        if (Math.abs(tx - player.pixelX) <= player.speed) player.pixelX = tx;
+        else if (player.pixelX < tx) player.pixelX += player.speed;
+        else if (player.pixelX > tx) player.pixelX -= player.speed;
+
+        if (Math.abs(ty - player.pixelY) <= player.speed) player.pixelY = ty;
+        else if (player.pixelY < ty) player.pixelY += player.speed;
+        else if (player.pixelY > ty) player.pixelY -= player.speed;
 
         if (player.pixelX === tx && player.pixelY === ty) {
             player.x = player.targetX;
@@ -480,6 +484,7 @@ function interact() {
 
 // --- SHOP LOGIC ---
 function openShopMenu() {
+    currentState = STATE_UI;
     uiLayer.classList.remove('hidden');
     listMenu.classList.remove('hidden');
     moneyBox.classList.remove('hidden');
@@ -655,6 +660,9 @@ function closeUI() {
 
 // FIELD MENUS
 function openFieldMenu() {
+    // Reset keys to prevent inadvertent immediate menu action
+    for(let k in keyState) keyState[k] = false;
+
     currentState = STATE_UI;
     uiState = 'FIELD_MENU';
     uiLayer.classList.remove('hidden');
@@ -780,6 +788,9 @@ function startTrainerBattle(gymObj) {
 }
 
 function startBattleSequence() {
+    // Reset keys to prevent sticking while battle starts
+    for(let k in keyState) keyState[k] = false;
+
     battleActive = true;
     currentState = STATE_UI;
     
