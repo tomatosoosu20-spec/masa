@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SUPER PIXEL QUEST</title>
+    <!-- GBA/Retro Pixel Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #050510;
+            --primary: #00f3ff;
+            --secondary: #ff00de;
+            --accent: #ffff00;
+            --danger: #ff3e3e;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 20% 20%, rgba(0, 243, 255, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 80% 80%, rgba(255, 0, 222, 0.05) 0%, transparent 40%);
+            color: #fff;
+            font-family: 'Press Start 2P', cursive;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        #game-wrapper {
+            position: relative;
+            width: 500px;
+            aspect-ratio: 1;
+            background: #000;
+            border: 4px solid #1a1a2e;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 243, 255, 0.1);
+            overflow: hidden;
+        }
+
+        /* HUD */
+        #hud {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            z-index: 5;
+            pointer-events: none;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+        }
+
+        .stat {
+            font-size: 10px;
+            text-shadow: 0 0 5px #000;
+        }
+        .xp { color: var(--primary); }
+        .lvl { color: var(--accent); }
+        .life { color: var(--secondary); letter-spacing: 2px; }
+
+        /* Canvas Style */
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            image-rendering: pixelated;
+        }
+
+        /* Overlays */
+        .overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(5, 5, 16, 0.9);
+            backdrop-filter: blur(8px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            transition: opacity 0.3s ease;
+        }
+
+        .hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            background: linear-gradient(var(--primary), #0088ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 15px var(--primary));
+            animation: pulse 2s infinite alternate;
+        }
+
+        @keyframes pulse {
+            from { transform: scale(1); filter: drop-shadow(0 0 5px var(--primary)); }
+            to { transform: scale(1.05); filter: drop-shadow(0 0 20px var(--primary)); }
+        }
+
+        .overlay p {
+            font-size: 12px;
+            margin-bottom: 30px;
+            color: rgba(255,255,255,0.7);
+            line-height: 1.6;
+            text-align: center;
+        }
+
+        .pixel-btn {
+            background: var(--glass);
+            border: 2px solid var(--glass-border);
+            color: #fff;
+            padding: 15px 30px;
+            font-family: inherit;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pixel-btn:hover {
+            border-color: var(--primary);
+            box-shadow: 0 0 15px var(--primary);
+            color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .pixel-btn:active {
+            transform: translateY(1px);
+        }
+
+        .controls-info {
+            margin-top: 40px;
+            font-size: 8px;
+            color: #444;
+            display: flex;
+            gap: 20px;
+        }
+
+        .danger-text {
+            color: var(--danger) !important;
+            filter: drop-shadow(0 0 10px var(--danger)) !important;
+        }
+
+        /* CRT Effect Overlay */
+        #crt-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            background-size: 100% 3px, 3px 100%;
+            pointer-events: none;
+            z-index: 8;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="game-wrapper">
+        <div id="hud">
+            <div class="stat xp">XP: <span id="scoreVal">0</span></div>
+            <div class="stat life" id="lifeVal">❤️❤️❤️</div>
+            <div class="stat lvl">LVL: <span id="lvlVal">1</span></div>
+        </div>
+
+        <canvas id="gameCanvas"></canvas>
+        <div id="crt-overlay"></div>
+
+        <!-- Start Screen -->
+        <div id="startScreen" class="overlay">
+            <h1>PIXEL QUEST</h1>
+            <p>宝石を集めろ。スライムを避けろ。<br>集めるたびに敵は速くなる。</p>
+            <button class="pixel-btn" onclick="startGame()">START GAME</button>
+            <div class="controls-info">
+                <span>[WASD] MOVE</span>
+                <span>[ESC] RESET</span>
+            </div>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="gameOverScreen" class="overlay hidden">
+            <h1 class="danger-text">GAME OVER</h1>
+            <p>最終スコア: <span id="finalScore">0</span></p>
+            <button class="pixel-btn" onclick="startGame()">TRY AGAIN</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreEl = document.getElementById('scoreVal');
+        const lifeEl = document.getElementById('lifeVal');
+        const lvlEl = document.getElementById('lvlVal');
+        const finalScoreEl = document.getElementById('finalScore');
+        
+        const startScreen = document.getElementById('startScreen');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+
+        // Scale
+        const SIZE = 500;
+        const GRID_SIZE = 25;
+        const CELL = SIZE / GRID_SIZE;
+        canvas.width = SIZE;
+        canvas.height = SIZE;
+
+        // Constants
+        const COLORS = {
+            bg: '#050510',
+            player: '#00f3ff',
+            gem: '#ffff00',
+            enemy: '#ff00de',
+            grid: '#111122'
+        };
+
+        // Game State
+        let game = {
+            score: 0,
+            lives: 3,
+            level: 1,
+            active: false,
+            frame: 0
+        };
+
+        let player = {
+            x: 12, y: 12,
+            targetX: 12, targetY: 12,
+            speed: 0.2,
+            lastInput: 0
+        };
+
+        let gems = [];
+        let enemies = [];
+        let particles = [];
+        let keys = {};
+
+        // Input
+        window.addEventListener('keydown', e => {
+            keys[e.code] = true;
+            if(e.code === 'Escape') resetGame();
+        });
+        window.addEventListener('keyup', e => keys[e.code] = false);
+
+        function resetGame() {
+            game.active = false;
+            startScreen.classList.remove('hidden');
+            gameOverScreen.classList.add('hidden');
+        }
+
+        function startGame() {
+            game = { score: 0, lives: 3, level: 1, active: true, frame: 0 };
+            player.x = player.targetX = 12;
+            player.y = player.targetY = 12;
+            spawnLevel();
+            updateUI();
+            startScreen.classList.add('hidden');
+            gameOverScreen.classList.add('hidden');
+            requestAnimationFrame(loop);
+        }
+
+        function spawnLevel() {
+            gems = [];
+            enemies = [];
+            particles = [];
+            
+            // Spawn gems
+            for(let i=0; i < 5 + game.level; i++) {
+                gems.push({
+                    x: Math.floor(Math.random() * (GRID_SIZE-4)) + 2,
+                    y: Math.floor(Math.random() * (GRID_SIZE-4)) + 2
+                });
+            }
+
+            // Spawn enemies
+            for(let i=0; i < Math.min(game.level, 10); i++) {
+                enemies.push({
+                    x: Math.floor(Math.random() * (GRID_SIZE-4)) + 2,
+                    y: Math.floor(Math.random() * (GRID_SIZE-4)) + 2,
+                    vx: (Math.random() - 0.5) * 0.1,
+                    vy: (Math.random() - 0.5) * 0.1,
+                    speed: 0.02 + (game.level * 0.005)
+                });
+            }
+        }
+
+        function updateUI() {
+            scoreEl.innerText = game.score;
+            lvlEl.innerText = game.level;
+            lifeEl.innerText = '❤️'.repeat(Math.max(0, game.lives));
+        }
+
+        function loop() {
+            if(!game.active) return;
+            game.frame++;
+
+            update();
+            draw();
+
+            requestAnimationFrame(loop);
+        }
+
+        function update() {
+            // Player Interpolation
+            player.x += (player.targetX - player.x) * player.speed;
+            player.y += (player.targetY - player.y) * player.speed;
+
+            // Player Input (Grid base)
+            const now = Date.now();
+            if (now - player.lastInput > 150) {
+                if (Math.abs(player.targetX - player.x) < 0.1 && Math.abs(player.targetY - player.y) < 0.1) {
+                    let nextX = player.targetX;
+                    let nextY = player.targetY;
+
+                    if (keys['KeyW'] || keys['ArrowUp']) nextY--;
+                    else if (keys['KeyS'] || keys['ArrowDown']) nextY++;
+                    else if (keys['KeyA'] || keys['ArrowLeft']) nextX--;
+                    else if (keys['KeyD'] || keys['ArrowRight']) nextX++;
+
+                    if (nextX >= 0 && nextX < GRID_SIZE && nextY >= 0 && nextY < GRID_SIZE) {
+                        player.targetX = nextX;
+                        player.targetY = nextY;
+                        player.lastInput = now;
+                    }
+                }
+            }
+
+            // Gems collision
+            gems = gems.filter(g => {
+                const dist = Math.hypot(player.x - g.x, player.y - g.y);
+                if (dist < 0.8) {
+                    game.score += 10;
+                    createExplosion(g.x, g.y, COLORS.gem);
+                    updateUI();
+                    return false;
+                }
+                return true;
+            });
+
+            if(gems.length === 0) {
+                game.level++;
+                spawnLevel();
+                updateUI();
+            }
+
+            // Enemies move and collision
+            enemies.forEach(e => {
+                e.x += e.vx * (1 + game.level * 0.1);
+                e.y += e.vy * (1 + game.level * 0.1);
+
+                if (e.x < 0 || e.x > GRID_SIZE - 1) e.vx *= -1;
+                if (e.y < 0 || e.y > GRID_SIZE - 1) e.vy *= -1;
+
+                const dist = Math.hypot(player.x - e.x, player.y - e.y);
+                if(dist < 0.7) {
+                    hitPlayer();
+                }
+            });
+
+            // Particles
+            particles = particles.filter(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life -= 0.02;
+                return p.life > 0;
+            });
+        }
+
+        function hitPlayer() {
+            game.lives--;
+            createExplosion(player.x, player.y, '#ff3e3e', 20);
+            updateUI();
+            
+            if(game.lives <= 0) {
+                endGame();
+            } else {
+                player.x = player.targetX = 12;
+                player.y = player.targetY = 12;
+            }
+        }
+
+        function endGame() {
+            game.active = false;
+            finalScoreEl.innerText = game.score;
+            gameOverScreen.classList.remove('hidden');
+        }
+
+        function createExplosion(x, y, color, count = 12) {
+            for(let i=0; i<count; i++) {
+                particles.push({
+                    x: x + 0.5,
+                    y: y + 0.5,
+                    vx: (Math.random() - 0.5) * 0.2,
+                    vy: (Math.random() - 0.5) * 0.2,
+                    life: 1.0,
+                    color: color
+                });
+            }
+        }
+
+        function draw() {
+            ctx.fillStyle = COLORS.bg;
+            ctx.fillRect(0, 0, SIZE, SIZE);
+
+            // Draw Grid
+            ctx.strokeStyle = COLORS.grid;
+            ctx.lineWidth = 1;
+            for(let i=0; i<=GRID_SIZE; i++) {
+                ctx.beginPath();
+                ctx.moveTo(i * CELL, 0); ctx.lineTo(i * CELL, SIZE);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(0, i * CELL); ctx.lineTo(SIZE, i * CELL);
+                ctx.stroke();
+            }
+
+            // Gems
+            gems.forEach(g => {
+                const pulse = Math.sin(game.frame * 0.1) * 2;
+                ctx.fillStyle = COLORS.gem;
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = COLORS.gem;
+                ctx.beginPath();
+                ctx.arc(g.x * CELL + CELL/2, g.y * CELL + CELL/2, CELL/4 + pulse, 0, Math.PI*2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            });
+
+            // Enemies (Slimes)
+            enemies.forEach(e => {
+                const bounce = Math.abs(Math.sin(game.frame * 0.1)) * 4;
+                ctx.fillStyle = COLORS.enemy;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = COLORS.enemy;
+                
+                ctx.beginPath();
+                ctx.ellipse(e.x * CELL + CELL/2, e.y * CELL + CELL/2 + bounce, CELL/2.5, CELL/3, 0, 0, Math.PI*2);
+                ctx.fill();
+                
+                // Eyes
+                ctx.fillStyle = "#fff";
+                ctx.fillRect(e.x * CELL + CELL/3, e.y * CELL + CELL/3 + bounce, 3, 3);
+                ctx.fillRect(e.x * CELL + CELL/1.5, e.y * CELL + CELL/3 + bounce, 3, 3);
+                ctx.shadowBlur = 0;
+            });
+
+            // Player
+            ctx.fillStyle = COLORS.player;
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = COLORS.player;
+            ctx.fillRect(player.x * CELL + 2, player.y * CELL + 2, CELL - 4, CELL - 4);
+            ctx.shadowBlur = 0;
+
+            // Particles
+            particles.forEach(p => {
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = p.life;
+                ctx.fillRect(p.x * CELL, p.y * CELL, 4, 4);
+            });
+            ctx.globalAlpha = 1.0;
+        }
+
+        // Background animation for start screen
+        function bgAnimate() {
+            if(!game.active) {
+                game.frame++;
+                // slow constant move for bg feel
+                draw();
+                requestAnimationFrame(bgAnimate);
+            }
+        }
+        bgAnimate();
+
+    </script>
+</body>
+</html>
