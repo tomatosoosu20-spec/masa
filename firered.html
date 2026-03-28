@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FireRed Clone</title>
+    <!-- GBA風のドットフォントを使用 -->
+    <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="firered.css">
+</head>
+<body>
+    <div id="game-container">
+        <!-- GBA風のフレーム -->
+        <div id="handheld-frame">
+            <div id="screen-border">
+                <div id="screen-wrapper">
+                    <!-- マップやエンカウント演出用キャンバス -->
+                    <canvas id="overworldCanvas" width="240" height="160"></canvas>
+                    
+                    <!-- バトルシーン用UI要素 (初期状態は隠す) -->
+                    <div id="battle-ui" class="hidden">
+                        <canvas id="battleCanvas" width="240" height="160"></canvas>
+                        
+                        <!-- ダイアログボックス -->
+                        <div id="dialogue-box">
+                            <div id="message"></div>
+                        </div>
+                        
+                        <!-- コマンドメニュー -->
+                        <div id="command-menu" class="hidden">
+                            <div class="menu-item active" id="btn-fight">たたかう</div>
+                            <div class="menu-item" id="btn-bag">バッグ</div>
+                            <div class="menu-item" id="btn-pokemon">ポケモン</div>
+                            <div class="menu-item" id="btn-run">にげる</div>
+                        </div>
+                        
+                        <!-- 技メニュー -->
+                        <div id="move-menu" class="hidden">
+                            <div class="move-item active" id="move-1">-</div>
+                            <div class="move-item" id="move-2">-</div>
+                            <div class="move-item" id="move-3">-</div>
+                            <div class="move-item" id="move-4">-</div>
+                            <div id="move-details">
+                                <div id="move-type">タイプ/--</div>
+                                <div id="move-pp">PP --/--</div>
+                            </div>
+                        </div>
+
+                         <!-- トランジションエフェクト用のフラッシュや暗転画面 -->
+                         <div id="transition-overlay" class="hidden"></div>
+
+                        <!-- HPバー -->
+                        <div id="enemy-hp-bar" class="status-bar hidden">
+                            <div class="name" id="enemy-name">???</div>
+                            <div class="level" id="enemy-level">Lv. 5</div>
+                            <div class="hp-track"><div id="enemy-hp-fill" class="hp-fill"></div></div>
+                        </div>
+                        
+                        <div id="player-hp-bar" class="status-bar hidden">
+                            <div class="name" id="player-name">ヒトカゲ</div>
+                            <div class="level" id="player-level">Lv. 5</div>
+                            <div class="hp-track"><div id="player-hp-fill" class="hp-fill"></div></div>
+                            <div class="hp-text"><span id="player-hp-current">20</span> / <span id="player-hp-max">20</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 十字キー等のコントローラ -->
+            <div id="controls">
+                <div id="dpad">
+                    <div class="up"></div>
+                    <div class="right"></div>
+                    <div class="down"></div>
+                    <div class="left"></div>
+                </div>
+                <div id="action-buttons">
+                    <div class="btn-a">A</div>
+                    <div class="btn-b">B</div>
+                </div>
+                <div id="start-select">
+                    <div class="select">SELECT</div>
+                    <div class="start">START</div>
+                </div>
+            </div>
+        </div>
+        
+        <div style="margin-top:20px;">
+            <a href="index.html" class="home-link">← 戻る</a>
+        </div>
+    </div>
+    <script src="firered.js"></script>
+</body>
+</html>
