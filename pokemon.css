@@ -1,8 +1,8 @@
 :root {
-    --gba-gray: #c0d0d8;
-    --gba-dark-gray: #405058;
-    --gba-screen-bg: #111;
-    --pixel-font: 'DotGothic16', monospace;
+    --gba-red: #cc2222;
+    --gba-dark-red: #881111;
+    --gba-screen-bg: #889977;
+    --pixel-font: 'DotGothic16', sans-serif;
 }
 
 body {
@@ -14,7 +14,8 @@ body {
     justify-content: center;
     align-items: center;
     height: 100vh;
-    color: #0f0;
+    color: white;
+    overflow: hidden;
 }
 
 #game-container {
@@ -22,14 +23,15 @@ body {
 }
 
 #handheld-frame {
-    background-color: var(--gba-gray);
-    border: 10px solid var(--gba-dark-gray);
-    border-radius: 20px;
-    padding: 30px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+    background-color: var(--gba-red);
+    border: 10px solid var(--gba-dark-red);
+    border-radius: 40px;
+    padding: 40px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
     position: relative;
     user-select: none;
-    width: 600px;
+    width: 600px; /* To fit both parser and 480x320 game */
+    box-sizing: border-box;
 }
 
 #screen-border {
@@ -37,56 +39,25 @@ body {
     padding: 20px;
     border-radius: 10px;
     border: 5px solid #222;
+    position: relative;
 }
 
+/* === PARSER SCREEN === */
 #parser-screen {
-    background-color: var(--gba-screen-bg);
-    width: 100%;
-    height: 480px;
+    background-color: #111;
+    width: 480px;
+    height: 320px;
     border: 1px solid #000;
-    padding: 10px;
+    padding: 15px;
     box-sizing: border-box;
     overflow-y: auto;
     font-size: 14px;
     line-height: 1.4;
+    color: #0f0;
+    margin: 0 auto;
 }
 
-.hidden { display: none !important; }
-.highlight { color: #fff; background: #004400; padding: 2px 5px; margin-bottom: 5px; display: inline-block; }
-
-/* Control styles */
-#controls {
-    margin-top: 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-#dpad {
-    width: 80px;
-    height: 80px;
-    position: relative;
-    background: #444;
-    border-radius: 5px;
-}
-.up, .down, .left, .right { position: absolute; background: #222; }
-.up { top: 0; left: 25px; width: 30px; height: 30px; }
-.down { bottom: 0; left: 25px; width: 30px; height: 30px; }
-.left { left: 0; top: 25px; width: 30px; height: 30px; }
-.right { right: 0; top: 25px; width: 30px; height: 30px; }
-
-#action-buttons { display: flex; gap: 15px; }
-.btn-a, .btn-b {
-    width: 40px; height: 40px; background: #444; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    border-bottom: 3px solid #222; color: #fff; font-weight: bold; cursor: pointer;
-}
-.btn-a:active, .btn-b:active { border-bottom: 0px; transform: translateY(3px); }
-
-#start-select { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); display: flex; gap: 30px; }
-.select, .start { font-size: 12px; color: #333; font-weight: bold; background: #888; padding: 2px 10px; border-radius: 10px; cursor: pointer; }
-
-#upload-section { margin-top: 20px; text-align: center; }
+#upload-section { margin-top: 50px; text-align: center; }
 #file-input { display: none; }
 .upload-btn {
     display: inline-block;
@@ -98,6 +69,8 @@ body {
 }
 .upload-btn:hover { background: #00aa00; color: #000; }
 
+.highlight { color: #fff; background: #004400; padding: 2px 5px; margin-bottom: 5px; display: inline-block; }
+
 #hex-dump {
     font-size: 12px;
     color: #ffaa00;
@@ -105,3 +78,251 @@ body {
     font-family: 'Courier New', monospace;
     margin-top: 10px;
 }
+
+/* Pulse animation for START button */
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.7; }
+    100% { transform: scale(1); opacity: 1; }
+}
+.pulse {
+    animation: pulse 1.5s infinite;
+}
+
+.start-btn {
+    background: #0f0;
+    color: #000;
+    border: none;
+    font-family: var(--pixel-font);
+    font-size: 20px;
+    font-weight: bold;
+    padding: 10px 20px;
+    cursor: pointer;
+    border-radius: 5px;
+    box-shadow: 0 0 10px #0f0;
+}
+.start-btn:hover {
+    background: #fff;
+    box-shadow: 0 0 15px #fff;
+}
+
+/* === GAME SCREEN === */
+#game-screen {
+    position: relative;
+    width: 480px;
+    height: 320px;
+    margin: 0 auto;
+}
+
+#gameCanvas {
+    background-color: var(--gba-screen-bg);
+    image-rendering: pixelated;
+    display: block;
+    width: 480px; /* 2x Scale */
+    height: 320px;
+    border: 1px solid #000;
+}
+
+#ui-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    font-size: 24px;
+}
+
+/* Status Bars */
+.status-bar {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.9);
+    color: #444;
+    border: 3px solid #666;
+    border-radius: 0 0 10px 10px;
+    padding: 5px 15px;
+    width: 200px;
+    box-shadow: 2px 2px 0 #000;
+}
+
+#enemy-hp-bar {
+    top: 20px;
+    left: 20px;
+    border-radius: 0 15px 0 15px;
+}
+
+#player-hp-bar {
+    bottom: 120px;
+    right: 20px;
+    border-radius: 15px 0 15px 0;
+}
+
+.name { font-weight: bold; font-size: 18px; }
+.level { font-size: 14px; float: right; margin-top: 5px; }
+.hp-track {
+    background: #ccc;
+    height: 8px;
+    border: 2px solid #555;
+    margin-top: 5px;
+    position: relative;
+    clear: both;
+}
+.hp-fill {
+    height: 100%;
+    background: #00ff00;
+    width: 100%;
+    transition: width 0.5s ease-out;
+}
+.hp-text { font-size: 14px; text-align: right; margin-top: 2px; }
+
+/* Dialogue and Menus */
+#dialogue-box {
+    position: absolute;
+    bottom: 1px;
+    left: 1px;
+    width: 478px;
+    height: 100px;
+    background: white;
+    border: 5px solid #666;
+    color: #444;
+    padding: 15px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    pointer-events: all;
+    background-image: linear-gradient(to bottom, #fff 50%, #eee 100%);
+}
+
+#command-menu {
+    position: absolute;
+    bottom: 0px;
+    right: 0px;
+    width: 200px;
+    height: 100px;
+    background: white;
+    border: 5px solid #666;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    padding: 10px;
+    box-sizing: border-box;
+    pointer-events: all;
+}
+
+#move-menu {
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+    width: 480px;
+    height: 100px;
+    background: white;
+    border: 5px solid #666;
+    display: grid;
+    grid-template-columns: 1fr 1fr 0.5fr;
+    padding: 10px;
+    box-sizing: border-box;
+    pointer-events: all;
+}
+
+.menu-item, .move-item {
+    color: #444;
+    display: flex;
+    align-items: center;
+    padding-left: 10px;
+    cursor: pointer;
+    font-size: 18px;
+}
+
+.menu-item.active::before, .move-item.active::before {
+    content: '▶';
+    margin-right: 5px;
+    color: #cc2222;
+}
+
+#move-details {
+    grid-column: 3;
+    border-left: 2px solid #ccc;
+    padding-left: 10px;
+    font-size: 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+}
+
+.hidden { display: none !important; }
+
+/* Handheld Controls */
+#controls {
+    margin-top: 30px;
+    display: flex;
+    justify-content: center;
+    gap: 80px;
+    align-items: center;
+}
+
+#dpad {
+    width: 80px;
+    height: 80px;
+    position: relative;
+    background: #444;
+    border-radius: 5px;
+}
+
+.up, .down, .left, .right {
+    position: absolute;
+    background: #222;
+    cursor: pointer;
+}
+
+.up { top: 0; left: 25px; width: 30px; height: 30px; }
+.down { bottom: 0; left: 25px; width: 30px; height: 30px; }
+.left { left: 0; top: 25px; width: 30px; height: 30px; }
+.right { right: 0; top: 25px; width: 30px; height: 30px; }
+
+#action-buttons {
+    display: flex;
+    gap: 15px;
+}
+
+.btn-a, .btn-b {
+    width: 40px;
+    height: 40px;
+    background: #444;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    border-bottom: 3px solid #222;
+    cursor: pointer;
+}
+
+#start-select {
+    position: absolute;
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 30px;
+}
+
+.select, .start {
+    font-size: 12px;
+    color: #881111;
+    font-weight: bold;
+    cursor: pointer;
+    background: rgba(0,0,0,0.2);
+    padding: 2px 10px;
+    border-radius: 10px;
+}
+
+/* Animations */
+@keyframes shake {
+    0% { transform: translate(0,0); }
+    25% { transform: translate(-5px, 0); }
+    50% { transform: translate(5px, 0); }
+    75% { transform: translate(-5px, 0); }
+    100% { transform: translate(0,0); }
+}
+
+.shake { animation: shake 0.2s linear 2; }

@@ -3,19 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GBA State Parser</title>
+    <title>Pokémon FireRed & Parser</title>
     <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="pokemon.css">
 </head>
 <body>
     <div id="game-container">
+        <!-- GBA-style Frame -->
         <div id="handheld-frame">
             <div id="screen-border">
+                
+                <!-- PARSER SCREEN (INITIAL) -->
                 <div id="parser-screen">
-                    <div class="glitch-text" style="text-align:center; color:#0f0; margin-bottom:10px;">GBA STATE PARSER OS</div>
+                    <div class="glitch-text" style="text-align:center; color:#0f0; margin-bottom:10px; font-size:18px;">GBA OS LOAD SYSTEM</div>
                     
                     <div id="upload-section">
-                        <label for="file-input" class="upload-btn">STATEファイルをロード</label>
+                        <p style="color:#eee;">1. STATEファイル (.state) をロードしてください</p>
+                        <label for="file-input" class="upload-btn">ファイルをロード</label>
                         <input type="file" id="file-input" accept=".state">
                     </div>
                     
@@ -26,10 +30,63 @@
                         
                         <div style="margin-top:10px; color:#aaa;">--- Hex Dump (First 256 bytes) ---</div>
                         <pre id="hex-dump"></pre>
+                        
+                        <div style="text-align:center; margin-top:20px;">
+                            <button id="start-game-btn" class="start-btn pulse hidden">▶ START GAME</button>
+                        </div>
                     </div>
                 </div>
+
+                <!-- GAME SCREEN (HIDDEN AT FIRST) -->
+                <div id="game-screen" class="hidden">
+                    <canvas id="gameCanvas" width="240" height="160"></canvas>
+                    
+                    <!-- UI Overlay for Game -->
+                    <div id="ui-overlay">
+                        <!-- Dialogue Box -->
+                        <div id="dialogue-box" class="hidden">
+                            <div id="message"></div>
+                        </div>
+                        
+                        <!-- Command Menu -->
+                        <div id="command-menu" class="hidden">
+                            <div class="menu-item active" id="btn-fight">たたかう</div>
+                            <div class="menu-item" id="btn-bag">バッグ</div>
+                            <div class="menu-item" id="btn-pokemon">ポケモン</div>
+                            <div class="menu-item" id="btn-run">にげる</div>
+                        </div>
+                        
+                        <!-- Move Menu -->
+                        <div id="move-menu" class="hidden">
+                            <div class="move-item active" id="move-1">かえんほうしゃ</div>
+                            <div class="move-item" id="move-2">そらをとぶ</div>
+                            <div class="move-item" id="move-3">ドラゴンクロー</div>
+                            <div class="move-item" id="move-4">ブラストバーン</div>
+                            <div id="move-details">
+                                <div id="move-type">タイプ/ほのお</div>
+                                <div id="move-pp">PP 15/15</div>
+                            </div>
+                        </div>
+
+                        <!-- HP Bars -->
+                        <div id="enemy-hp-bar" class="status-bar">
+                            <div class="name">カメックス</div>
+                            <div class="level">Lv. 50</div>
+                            <div class="hp-track"><div id="enemy-hp-fill" class="hp-fill"></div></div>
+                        </div>
+                        
+                        <div id="player-hp-bar" class="status-bar">
+                            <div class="name">リザードン</div>
+                            <div class="level">Lv. 50</div>
+                            <div class="hp-track"><div id="player-hp-fill" class="hp-fill"></div></div>
+                            <div class="hp-text"><span id="player-hp-current">200</span> / <span id="player-hp-max">200</span></div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
             
+            <!-- Handheld Controls -->
             <div id="controls">
                 <div id="dpad">
                     <div class="up"></div>
