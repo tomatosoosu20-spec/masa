@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel Survivor | masato</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="pixelsurvivor.css">
+</head>
+
+<body>
+    <div class="game-wrapper">
+        <header class="game-header">
+            <div class="stats">
+                <div class="stat-item">TIME: <span id="time">00:00</span></div>
+                <div class="stat-item">KILLS: <span id="kills">0</span></div>
+                <div class="stat-item">LVL: <span id="lvl">1</span></div>
+            </div>
+            <a href="index.html" class="back-link">EXIT</a>
+        </header>
+
+        <div id="game-container">
+            <div id="xp-bar-container">
+                <div id="xp-bar"></div>
+            </div>
+            <button id="pause-btn">ストップ</button>
+            <canvas id="gameCanvas"></canvas>
+
+            <div id="start-screen" class="overlay">
+                <div class="overlay-content">
+                    <h1>PIXEL SURVIVOR</h1>
+                    <p>Survive the dot swarm. Auto-attacks active.</p>
+                    <button id="startBtn" class="pixel-btn">SURVIVE</button>
+                    <div class="controls-hint">
+                        WASD / ARROWS to Move
+                    </div>
+                </div>
+            </div>
+
+            <div id="gameover-screen" class="overlay hidden">
+                <div class="overlay-content">
+                    <h1 class="text-red">OVERWHELMED</h1>
+                    <p>Survived: <span id="finalTime">00:00</span></p>
+                    <p>Kills: <span id="finalKills">0</span></p>
+                    <button id="retryBtn" class="pixel-btn">TRY AGAIN</button>
+                    <button id="reviveBtn" class="pixel-btn hidden">REVIVE (100 KILLS)</button>
+                </div>
+            </div>
+
+            <div id="victory-screen" class="overlay hidden">
+                <div class="overlay-content">
+                    <h1 class="text-blue">STAGE CLEARED!</h1>
+                    <p>You have conquered the swarm.</p>
+                    <p>Time: <span id="victoryTime">00:00</span></p>
+                    <button id="nextStageBtn" class="pixel-btn">NEXT STAGE</button>
+                    <button id="dashBtn" class="pixel-btn">1000m DASH</button>
+                </div>
+            </div>
+
+            <div id="levelup-screen" class="overlay hidden">
+                <div class="levelup-content">
+                    <h1 class="text-blue">LEVEL UP!</h1>
+                    <p>Choose an Upgrade</p>
+                    <div id="upgrade-choices">
+                        <!-- Choices added via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <div id="pause-screen" class="overlay hidden">
+                <div class="overlay-content">
+                    <h1>PAUSED</h1>
+                    <div id="pause-stats">
+                        <p>Elapsed: <span id="pause-time">00:00</span></p>
+                        <div id="pause-inventory">
+                            <!-- Items appear here -->
+                        </div>
+                        <div id="pause-evolutions">
+                            <!-- Evolution recipes appear here -->
+                        </div>
+                    </div>
+                    <button id="resume-btn" class="pixel-btn">RESUME</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="cheat_survivor.js"></script>
+</body>
+
+</html>
