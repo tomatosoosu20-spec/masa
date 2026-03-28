@@ -265,6 +265,7 @@ function handleKey(key, isDown) {
             if (k==='X') { 
                 if(battleActive) {
                     uiState = 'BATTLE_COMMAND';
+                    currentState = STATE_BATTLE; // Fix: Ensure we return to battle command input handling
                     listMenu.classList.add('hidden');
                     updateBattleUI();
                 } else {
@@ -650,6 +651,7 @@ function closeUI() {
     if (battleActive) {
         uiState = 'BATTLE_COMMAND';
         dialogueBox.classList.add('hidden');
+        currentState = STATE_BATTLE; // Fix: Ensure input logic knows we are in battle command mode
         updateBattleUI();
         return;
     }
@@ -688,6 +690,7 @@ function closeFieldMenu() {
 // LIST MENUS
 function openBagMenu(inBattle) {
     uiState = 'BAG';
+    currentState = STATE_UI; // Fix: Use UI state for menu navigation
     listMenu.classList.remove('hidden');
     listTitle.textContent = "バッグ";
     currentList = [
@@ -700,6 +703,7 @@ function openBagMenu(inBattle) {
 
 function openPokemonMenu(inBattle) {
     uiState = 'POKEMON';
+    currentState = STATE_UI; // Fix: Use UI state for menu navigation
     listMenu.classList.remove('hidden');
     listTitle.textContent = "てもちポケモン";
     currentList = player.party.map((p, i) => {
