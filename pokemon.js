@@ -138,10 +138,14 @@ function init() {
                 
                 // Show Start Game Button
                 startGameBtn.classList.remove('hidden');
+                startGameBtn.textContent = '▶ START GAME FROM STATE';
             });
         }
     });
 
+    // Make Start Game button visible by default for a quick start
+    startGameBtn.classList.remove('hidden');
+    startGameBtn.textContent = '▶ QUICK START (SKIP PARSER)';
     startGameBtn.addEventListener('click', startActualGame);
 }
 
