@@ -931,6 +931,7 @@ function enemyTurn() {
             });
         } else {
             uiState = 'BATTLE_COMMAND';
+            currentState = STATE_BATTLE; // Fix: Allow input again after enemy turn ends
             updateBattleUI();
         }
     });
@@ -938,7 +939,11 @@ function enemyTurn() {
 
 function tryRun() {
     if (activeTrainerGym) {
-        showMessage(['トレーナーせんでは にげられない！'], () => { uiState = 'BATTLE_COMMAND'; updateBattleUI(); });
+        showMessage(['トレーナーせんでは にげられない！'], () => { 
+            uiState = 'BATTLE_COMMAND'; 
+            currentState = STATE_BATTLE; // Fix: Allow input again after run fail message
+            updateBattleUI(); 
+        });
     } else {
         showMessage(['うまく にげきれた！'], () => { endBattle(); });
     }
